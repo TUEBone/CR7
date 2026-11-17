@@ -1,28 +1,39 @@
-"""Export the static game as one HTML file using the original PNG bytes."""
+"""Bundle the actual current entry point and every local resource into one HTML."""
 from pathlib import Path
 import base64
-import json
+import mimetypes
 import re
 import sys
 
 repo = Path(__file__).resolve().parents[1]
 destination = Path(sys.argv[1]) if len(sys.argv) > 1 else repo.parent / 'CR7-Challenge-Offline.html'
-images = {}
-for image in sorted((repo / 'assets/sprites').glob('*/*.png')):
-    key = str(image.relative_to(repo / 'assets/sprites').with_suffix(''))
-    images[key] = 'data:image/png;base64,' + base64.b64encode(image.read_bytes()).decode('ascii')
-code = ['const INLINE_SPRITES = ' + json.dumps(images, separators=(',', ':')) + ';']
-for name in ['models', 'save', 'sprites', 'renderer', 'app']:
-    source = (repo / f'js/{name}.js').read_text()
-    source = re.sub(r'^import .*?;\n', '', source, flags=re.MULTILINE)
-    source = re.sub(r'\bexport\s+', '', source)
-    source = source.replace('new URL(`../assets/sprites/${key}.png`, import.meta.url).href', 'INLINE_SPRITES[key]')
-    code.append(source)
-sticker = 'data:image/png;base64,' + base64.b64encode((repo / 'assets/stickers/ronaldo.png').read_bytes()).decode('ascii')
-script = '\n'.join(code).replace('./assets/stickers/ronaldo.png', sticker)
+
+def data_url(path):
+    mime = mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+    return 'data:' + mime + ';base64,' + base64.b64encode(path.read_bytes()).decode('ascii')
+
 html = (repo / 'index.html').read_text()
-html = html.replace('<link rel="stylesheet" href="./style.css">', '<style>' + (repo / 'style.css').read_text() + '</style>')
-html = html.replace('<script type="module" src="./js/app.js"></script>', '<script type="module">\n' + script + '\n</script>')
+source = (repo / 'js/game.js').read_text()
+# Resolve dynamic home-asset paths without an HTTP server.
+resources = {f'../{path.relative_to(repo).as_posix()}': data_url(path)
+             for folder in ('assets/home', 'assets/pets')
+             for path in (repo / folder).glob('*.png')}
+import json
+source = 'const OFFLINE_ASSETS=' + json.dumps(resources) + ';\n' + source
+source = source.replace('new URL(path,import.meta.url).href', 'OFFLINE_ASSETS[path]')
+html = html.replace('<script type="module" src="./js/game.js"></script>',
+                    '<script type="module">\n' + source + '\n</script>')
+html = html.replace('<script src="./home-images-ac3bf84c8921.js"></script>',
+                    '<script>\n' + (repo / 'home-images-ac3bf84c8921.js').read_text() + '\n</script>')
+html = html.replace('<link rel="stylesheet" href="./enhancements.css">',
+                    '<style>' + (repo / 'enhancements.css').read_text() + '</style>')
+# Remaining football sheets are referenced by the current inline sprite map.
+for path in sorted((repo / 'assets').rglob('*.png')):
+    relative = './' + path.relative_to(repo).as_posix()
+    if relative in html:
+        html = html.replace(relative, data_url(path))
+if re.search(r'<script[^>]+src=', html):
+    raise RuntimeError('Unbundled external script remains')
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_text(html)
-print(f'{destination}: {destination.stat().st_size / 1024 / 1024:.1f} MiB, {len(images)} echte PNG-Sheets eingebettet')
+print(f'{destination}: {destination.stat().st_size / 1024 / 1024:.1f} MiB')

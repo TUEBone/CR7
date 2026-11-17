@@ -97,3 +97,87 @@ Geprüft werden beide Trefferbedingungen, zehn vollständige Schüsse, wechselnd
 Fenster, fünfspurige Reihen und der komplette Lauf, Ballzuwachs und Kopfballtreffer,
 500-ms-Fristen, sechs Zieltaps, Karriere bis 1.500 Runden, Top-5-Ergebnisse,
 Speichercode-Rundlauf, beschädigte Codes und blockierter Browser-Speicher.
+
+
+## Erweiterung: Zuhause, Torwand und ruhige Musik
+
+Die aktuelle GitHub-Pages-Version startet über `index.html` → `js/game.js`.
+`home-images-ac3bf84c8921.js` enthält die bisherigen Zuhause-Grafiken;
+`enhancements.css` die neue bildschirmfüllende Oberfläche. Die früheren einzelnen
+Module bleiben für die bisherigen Regressionstests erhalten; neue Funktionen
+werden gegen den tatsächlich gestarteten Code in `tests/current-game.test.js` geprüft.
+
+- Der Fußball besitzt ein dreidimensional projiziertes Muster aus zwölf Fünf- und
+  zwanzig Sechsecken. Er rollt nach vorne beziehungsweise gemäß seitlicher Flugrichtung.
+- Kopfball: rote Bälle zerplatzen beim Treffer und Verlassen des Feldes. Zeitlupe
+  dauert fünf Sekunden und ist alle 30 Spielsekunden wieder verfügbar. Ballräumen
+  ist einmal pro Runde möglich; anschließend starten neue normale Bälle oben.
+- Unter **Elfmeterschießen** lässt sich **Torwandschießen** wählen: fünf Schüsse,
+  zwei zufällige Löcher, internes Zielraster 10 × 8. Diese Runden zählen ebenfalls
+  zur Elfmeter-Karriere. Die Balken zeigen keine grünen Zielfenster: Position schätzen.
+- Zuhause und Garten nutzen die verfügbare Bildschirmfläche. Objekte im Bild sind
+  anklickbar: Schrank, Gartentür, Möbel, Vorräte, Rahmen, Musik und Einkäufe.
+  Für einen unverzerrten Eindruck empfiehlt sich das Querformat; Hochformat bleibt bedienbar.
+- Hund und Katze bleiben mit ihren Füßen auf Boden/Rasen und zeigen beim vertikalen
+  Laufen Vorder- oder Rückansichten. Beim Gassigehen teilen sie Ronaldos Sprungebene.
+  Der Sprung ist länger; neue PNG-Posen zeigen erhobene Arme und einen Rutscher.
+- Pflege: jede Phase endet nach vollständiger Abdeckung aller Bereiche. Beim
+  Abspülen gibt es keine Mindestzeit mehr. Das Tier steht höher vor der Dusche.
+- 22 Pflanzensorten, darunter 13 zusätzliche Gemüse-, Obst- und Blumensorten.
+  Neue Sorten werden ab 10 bis 125 Anpflanzungen freigeschaltet. Die Anzahl zählt
+  tatsächliche bezahlte Pflanzaktionen, keine Klicks auf gesperrtes Saatgut.
+  Zusätzliche Futtermenüs werden ebenfalls durch Gartenfortschritt freigeschaltet.
+- Sofa und Schrank: jeweils fünf Grundmodelle mit je fünf Material-/Farbvarianten.
+  Varianten verwenden die ursprünglichen Bilder mit lokaler Farbumrechnung.
+- Freigeschaltete Karrierebilder lassen sich groß öffnen und im Zuhause-Rahmen
+  aufhängen. Ein ruhiger Starttitel und zehn weitere eigene Instrumental-Loops
+  sind integriert. Jede Trophäe (zehn Karrierepunkte) schaltet einen weiteren Titel
+  im Musikspieler frei. Auswahl und Rahmenbild sind Teil des Speichercodes.
+  Musik wird lokal über Web Audio erzeugt, ohne Dateien oder Streamingdienste.
+- **Statistik** zeigt pro Spiel unter anderem Reihen und deren Durchschnitt,
+  rote Kopfbälle, Ballverluste, Hilfen, Spielzeit, Tore und Trefferquote; Torwand
+  wird zusätzlich separat ausgewiesen. Detailereignisse werden ab diesem Update
+  erfasst. Alte Highscores und Karrierezähler bleiben erhalten; fehlende historische
+  Detailwerte können nicht rückwirkend rekonstruiert werden.
+- **Einkäufe** im Zuhause setzt wahlweise Trikots, Möbel oder Alltagskleidung zurück.
+  Es gibt einen Bestätigungsdialog. Münzen beziehungsweise Trikotwahlen werden
+  vollständig zurückgegeben, ohne Karriere, Gesamtpunkte oder Trophäen zu löschen.
+
+Alte Speichercodes werden um die neuen Standardfelder ergänzt. Bitte vor einem
+Update trotzdem den eigenen Speichercode sichern. Für GitHub Pages das gesamte
+Repository einschließlich `enhancements.css`, `js/game.js` und der neuen Ordner
+`assets/home/` und `assets/pets/` bereitstellen. Die exportierte Offline-HTML bündelt
+auch diese Ressourcen; ihr Export verwendet jetzt den tatsächlichen Einstiegspunkt.
+
+Zusätzlicher Chromium-Test (lokaler Server auf Port 8000):
+
+```sh
+npm install --prefix /tmp/cr7-browser playwright
+PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/browser-check.cjs
+```
+
+Der Browsertest prüft Kopfball-Hilfen, fünf Torwandschüsse mit Karriereverbuchung,
+Gartenfreischaltungen, Speichercodes, Hoch-/Querformat, Trophäenbild, Musik und
+Erstattungsdialog. Er verwendet einen nur im Test injizierten Zugriff auf den
+Spielzustand. Chromium wird unter `/usr/bin/chromium` erwartet. Safari/iOS auf echten
+Geräten ist weiterhin gesondert zu prüfen. Änderungen werden hier weder automatisch
+zu GitHub gepusht noch auf GitHub Pages veröffentlicht.
+
+## Große Siegeranimation
+
+Die vorhandene achtteilige Ronaldo-Jubelpose erscheint als kurze Einblendung über
+dem gesamten Bildschirm vor der Auswertung, wenn eine abgeschlossene Runde diese
+Bedingung erfüllt:
+
+- Ansturm/Dribbeln: kompletter Lauf und alle drei Tore im Finale.
+- Kopfball: mindestens 4.000 Punkte.
+- Elfmeterschießen: mindestens acht Tore aus zehn Schüssen.
+- Torwandschießen: mindestens vier Treffer aus fünf Schüssen.
+
+Die Einblendung dauert ungefähr 3,2 Sekunden, lässt sich mit „Weiter“/Überspringen
+oder Escape beenden und erscheint je Runde nur einmal. Während der Browser im
+Hintergrund ist, läuft ihre Zeit nicht weiter. Bei reduzierter Bewegung erscheint
+die Siegerpose statisch für eine Sekunde. Das Rundenergebnis ist bereits vor dem
+Jubel gespeichert; Rückkehr aus Speichern oder Auswertung spielt ihn nicht erneut.
+
+Browserprüfung: `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/victory-browser-check.cjs`.

@@ -12,3 +12,13 @@ Posen können in Gesicht, Trikotdetails und Körperproportionen leicht abweichen
 Die Bilddateien werden zur Laufzeit direkt geladen und mit `drawImage` animiert.
 Stadion, Spielfeld, Tore und Bälle werden als Comicgrafik auf dem Canvas gezeichnet;
 die Spielfiguren selbst bestehen vollständig aus den PNGs.
+
+## Neue Zuhause-Animationen und Park
+
+`pets/directions.png`: anhand der vorhandenen Hund-/Katzenvorlagen generierte
+Vorder- und Rückansichten, zwei Schritte je Richtung, vier Spalten und zwei Reihen.
+`home/walk-poses.png`: neu generierte Sprung-/Rutschposen anhand der vorhandenen
+Ronaldo-Alltagskleidung; zwei Spalten und drei Kleidungsreihen.
+`home/park.png`: neu generierter gezeichneter Parkhintergrund.
+Die drei Dateien wurden mit dem Bildwerkzeug erstellt und liegen lokal im Projekt.
+Die beruhigenden Instrumental-Loops sind eigene prozedurale Web-Audio-Kompositionen.

@@ -1,0 +1,66 @@
+/* Home fills the available display; all object positions follow the artwork. */
+body.home-expanded #app{max-width:none;padding:0 10px}
+body.home-expanded #stage{width:100%;height:calc(100dvh - 88px);max-height:none;aspect-ratio:auto;border-radius:15px}
+body.home-expanded footer{display:none}
+body.home-expanded header{max-width:1000px;margin:auto}
+#overlay.home-mode{padding:0;overflow:auto;display:block;background:#eef8ee}
+#home-root{width:100%;min-height:100%;position:relative;padding:18px;max-width:1200px;margin:auto}
+#home-root:has(.immersive-scene){padding:0;height:100%;max-width:none}
+.immersive-scene{position:relative;height:100%;min-height:350px;overflow:hidden}
+.immersive-scene .home-room{position:absolute;inset:0;height:100%;width:100%;aspect-ratio:auto;max-height:none;border:0;border-radius:0;background-size:100% 100%}
+.scene-topbar{position:absolute;left:12px;right:12px;top:10px;z-index:110;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f5fff0df;padding:6px 10px;border-radius:12px;color:#20452c;box-shadow:0 2px 8px #0002;font-size:13px}
+.scene-topbar button{font-size:11px;padding:6px 12px}
+.scene-pet-tools{position:absolute;bottom:10px;left:10px;right:10px;z-index:110;display:flex;justify-content:center;gap:7px;align-items:center;flex-wrap:wrap;background:#f5fff0e6;border-radius:12px;padding:6px}
+.scene-pet-tools .home-pet-tabs{margin:0;display:flex;gap:5px}
+.scene-pet-tools button{min-height:40px;padding:8px;font-size:11px}
+.scene-message{position:absolute;bottom:78px;left:10%;right:10%;text-align:center;pointer-events:none;color:#183e26;background:#f5fff0c9;border-radius:8px;padding:5px;margin:0;font-size:11px;z-index:105}
+.room-hotspot{position:absolute;padding:7px 10px;min-height:36px;z-index:20;color:#17402d;background:#fffce9db;border:1px solid #486e4b88;font-size:12px;box-shadow:0 2px 5px #0002}
+.immersive-scene .room-wardrobe{left:4%;top:24%;width:22%;height:19%;border:0;background:transparent;color:transparent;z-index:22}
+.room-wardrobe:focus-visible{background:#fff6;color:#173a30}
+.immersive-scene .room-pet{width:15%;height:21%;transform:translate(-50%,-91%);padding:0;min-height:0;border:0;background:transparent;box-shadow:none}
+.immersive-scene .room-pet.selected{outline:2px dashed #fff9;outline-offset:-10px}
+.immersive-scene .room-pet canvas{width:100%;height:100%;object-fit:contain}
+.immersive-scene .garden-bed-hotspot{width:7.5%;height:5%;min-height:0;padding:0;font-size:clamp(12px,2.4vw,28px);background:transparent;text-shadow:0 2px 2px #0004}
+.wall-picture{position:absolute;left:34%;top:8%;width:14%;height:18%;padding:4px;background:#8c673c;border:3px solid #e2bd73;z-index:6;color:#fff;font-size:11px;min-height:0}
+.wall-picture img{width:100%;height:100%;object-fit:contain;background:#fbf3d5;pointer-events:none}
+.picture-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.picture-list img{width:100%;height:150px;object-fit:contain}
+.picture-list button span{display:block;font-size:12px}
+.picture-dialog,.refund-dialog{border:2px solid #d9b770;border-radius:20px;background:#f4fff3;color:#24462f;max-width:90vw;max-height:92dvh;padding:20px;text-align:center}
+.picture-dialog::backdrop,.refund-dialog::backdrop{background:#071d28d9}
+.picture-dialog img{display:block;max-width:75vw;max-height:65dvh;margin:auto}
+.picture-dialog button,.refund-dialog button{margin:8px}
+.music-list{display:grid;gap:8px;margin-bottom:18px}
+#header-powers{position:absolute;left:15px;right:15px;bottom:90px;display:flex;gap:8px;justify-content:center;z-index:4}
+#header-powers button{font-size:11px;padding:10px 12px;min-height:44px;background:#f6e7aa;color:#254638;box-shadow:0 2px 10px #0002}
+#header-powers button:disabled,button:disabled{opacity:.5;cursor:default}
+.home-mode .care-stage{height:min(66dvh,650px);aspect-ratio:auto;max-width:1000px;margin:0 auto;background-size:100% 100%}
+.home-mode .care-stage canvas{height:100%;object-fit:contain;transform:translateY(-6%)}
+.home-mode .home-heading h2{font-size:25px}
+@media(orientation:landscape){.home-mode .care-stage{height:70dvh}.scene-pet-tools{left:auto;width:auto;right:10px;max-width:85%}.scene-message{bottom:70px}.immersive-scene .room-pet{width:12%;height:22%}}
+.scene-hotspot{position:absolute;padding:7px 10px;min-height:36px;z-index:100;color:#17402d;background:#fffce9db;border:1px solid #486e4b88;font-size:12px;box-shadow:0 2px 5px #0002;transform:translate(-50%,-50%)}
+body.home-expanded #stage{max-width:none}
+.home-mode .care-stage{width:min(100%,calc(72dvh * 480 / 330));height:auto;aspect-ratio:480/330}
+.home-mode .care-stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.reward-picture img{max-width:100%;height:100px;object-fit:contain;display:block;margin:auto}.reward-picture span{font-size:11px}
+#home-root[data-scene=walk] .home-heading,#home-root[data-scene=walk] > .tip,#home-root[data-scene=walk] > p:not(#walk-result):not(#home-message){display:none}
+#home-root[data-scene=walk] #walk-canvas{width:auto;max-width:100%;height:min(52dvh,480px);aspect-ratio:480/430;display:block;margin:8px auto}
+#home-root[data-scene=walk] .home-bottom{margin-top:6px}#home-root[data-scene=walk] #home-message:empty{display:none}
+#home-root[data-scene=care] .home-heading{margin-bottom:0}#home-root[data-scene=care] > .tip{display:none}
+.scene-topbar{pointer-events:none}.scene-topbar button{pointer-events:auto}
+#home-root[data-scene=walk]{height:100%;display:flex;flex-direction:column;gap:5px;padding:10px}
+#home-root[data-scene=walk] #walk-canvas{width:100%;height:auto;flex:1;min-height:100px;max-width:none;aspect-ratio:auto;object-fit:fill;margin:0}
+#home-root[data-scene=walk] .walk-controls{margin:0}#home-root[data-scene=walk] .walk-hud{padding:6px 10px}
+#home-root[data-scene=walk] .home-bottom,#home-root[data-scene=walk] #home-message,#home-root[data-scene=walk] > [data-ha=room]{display:none}
+#home-root[data-scene=walk] #walk-result:empty{display:none}#home-root[data-scene=walk] #walk-pause{min-height:36px;padding:6px}
+#home-root[data-scene=walk] > [data-ha=room]{display:block;min-height:34px;padding:6px;font-size:11px}
+.victory-dialog{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;padding:0;margin:0;border:0;border-radius:0;overflow:hidden;background:#061322;color:#fff;box-shadow:none}
+.victory-dialog::backdrop{background:#061322}
+.victory-dialog canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.victory-caption{position:absolute;top:max(22px,env(safe-area-inset-top));left:10px;right:10px;text-align:center;pointer-events:none;text-shadow:0 3px 15px #0009}
+.victory-caption span{font-size:11px;letter-spacing:3px;color:#ffe0a1;font-weight:800}
+.victory-caption h2{font-size:clamp(42px,9vw,76px);font-style:italic;letter-spacing:2px;margin:8px 0;color:#ffda77}
+.victory-caption p{margin:0;color:#fff;font-size:15px}
+.victory-skip{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff4dbe8;color:#1b3d47;border-color:#ffe4a1;min-height:48px}
+.victory-skip:active{transform:translateX(-50%) scale(.97)}
+@media(max-height:450px){.victory-caption{top:12px;text-align:left;left:20px;right:auto;max-width:32%}.victory-caption h2{font-size:36px}.victory-caption span{font-size:9px;letter-spacing:1px}.victory-caption p{font-size:12px}.victory-skip{left:auto;right:14px;transform:none;bottom:14px;font-size:12px}.victory-skip:active{transform:scale(.97)}}
