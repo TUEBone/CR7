@@ -5,6 +5,7 @@ const INLINE_HOME = globalThis.CR7_HOME_IMAGES;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const LANES = [48, 144, 240, 336, 432];
 const PENALTY_GOAL = {x: 210, y: 125, w: 230, h: 150};
+const TARGET_WALL_GOAL = {x:80,y:115,w:320,h:256};
 const FINAL_GOAL = {x: 65, y: 125, w: 350, h: 190};
 const TARGET_SECONDS = .8;
 
@@ -59,11 +60,15 @@ class Headers {
   constructor(random = Math.random) {
     Object.assign(this, {random, x: 240, target: 240, elapsed: 0, score: 0,
       hits: 0, lives: 3, failed: false, balls: [],bonuses:[],nextBonusAt:8,bonusHits:0,lastBonusHitAge:10, hitAge: 10, headAge: 10, headPose: 'header_up'});
-    this.slowRemaining=0;this.slowCooldown=0;this.clearUsed=false;this.slowUses=0;this.cleared=0;this.bursts=[];this.missed=0;this.maxBalls=1;
+    this.slowRemaining=0;this.slowCooldown=0;this.clearUsed=false;this.slowUses=0;this.cleared=0;this.bursts=[];this.missed=0;this.maxBalls=1;this.clearCooldown=0;this.clearUses=0;this.returning=false;this.returnTimer=0;
     this.spawn();
   }
   useSlow(){if(this.failed||this.slowCooldown>0)return false;this.slowRemaining=5;this.slowCooldown=30;this.slowUses++;return true;}
-  clearBalls(){if(this.failed||this.clearUsed)return false;this.clearUsed=true;this.cleared=this.balls.length+this.bonuses.length;for(const b of [...this.balls,...this.bonuses])this.burst(b);this.balls=[];this.bonuses=[];return true;}
+  clearBalls(){if(this.failed||this.clearCooldown>0)return false;this.clearUsed=true;this.clearCooldown=30;this.clearUses++;this.cleared+=this.balls.length+this.bonuses.length;for(const b of [...this.balls,...this.bonuses])this.burst(b);this.balls=[];this.bonuses=[];this.returning=true;this.returnTimer=.75;this.nextBonusAt=Math.max(this.nextBonusAt,this.elapsed+(2+Math.floor(this.elapsed/15))*1.1+2);return true;}
+  refill(wanted,dt){if(!this.returning){while(this.balls.length<wanted)this.spawn();return;}
+   this.returnTimer-=dt;if(this.returnTimer<=0&&this.balls.length<wanted){this.spawn();this.returnTimer=1.1;}
+   if(this.balls.length>=wanted)this.returning=false;
+  }
   burst(b){this.bursts.push({x:b.x,y:Math.min(b.y,680),age:0,bonus:b.bonus});}
   spawn(bonus=false) {
     (bonus?this.bonuses:this.balls).push({x: 55 + this.random() * 370, y: 80 + this.random() * 35,
@@ -73,12 +78,12 @@ class Headers {
   get ballSpeed() { return this.elapsed >= 15 ? .5 : 1; }
   update(dt) {
     if (this.failed) return;
-    this.slowRemaining=Math.max(0,this.slowRemaining-dt);this.slowCooldown=Math.max(0,this.slowCooldown-dt);for(const b of this.bursts)b.age+=dt;this.bursts=this.bursts.filter(b=>b.age<.8);
+    this.slowRemaining=Math.max(0,this.slowRemaining-dt);this.slowCooldown=Math.max(0,this.slowCooldown-dt);this.clearCooldown=Math.max(0,this.clearCooldown-dt);for(const b of this.bursts)b.age+=dt;this.bursts=this.bursts.filter(b=>b.age<.8);
     this.elapsed += dt; this.hitAge += dt; this.headAge += dt;this.lastBonusHitAge+=dt;
     this.x += clamp(this.target - this.x, -550 * dt, 550 * dt);
     const wanted = 1 + Math.floor(this.elapsed / 15);
-    while (this.balls.length < wanted) this.spawn();
-    while(this.elapsed+1e-9>=this.nextBonusAt){this.spawn(true);this.nextBonusAt+=8;}
+    this.refill(wanted,dt);
+    while(this.elapsed+1e-9>=this.nextBonusAt){if(!this.returning)this.spawn(true);this.nextBonusAt+=8;}
     this.maxBalls=Math.max(this.maxBalls,this.balls.length);
     const ballDt = dt * this.ballSpeed * (this.slowRemaining>0?.35:1);
     const gravity = 185 + Math.min(180, this.elapsed * 1.8 + this.hits-this.bonusHits);
@@ -115,7 +120,7 @@ class Headers {
     }
     this.balls = this.balls.filter(b => !b.lost);
     this.bonuses = this.bonuses.filter(b=>!b.lost);
-    if (!this.failed) {
+    if (!this.failed&&!this.returning) {
       while (this.balls.length < wanted) this.spawn();
     }
   }
@@ -231,10 +236,11 @@ class FinalShootout {
 
 class TargetWall extends Penalty {
  constructor(random=Math.random){super(random);this.wall=true;}
- prepare(){super.prepare();const first=Math.floor(this.random()*80);let second=Math.floor(this.random()*79);if(second>=first)second++;this.holes=[first,second].map(n=>({col:n%10,row:Math.floor(n/10)}));this.directionZones=[];this.heightZones=[];}
+ get cursor(){return 1-Math.abs((this.phaseTime*.72)%2-1);}
+ prepare(){super.prepare();const first=Math.min(62,Math.floor(this.random()*63)),a={col:first%9,row:Math.floor(first/9)};const options=Array.from({length:63},(_,n)=>({col:n%9,row:Math.floor(n/9)})).filter(b=>Math.abs(b.col-a.col)>=3||Math.abs(b.row-a.row)>=3);this.holes=[a,options[Math.min(options.length-1,Math.floor(this.random()*options.length))]];this.directionZones=[];this.heightZones=[];}
  tap(){
   if(this.phase==='direction'){this.direction=this.cursor;this.phase='height';this.phaseTime=0;return true;}
-  if(this.phase==='height'&&this.phaseTime>=.18){this.height=this.cursor;const col=Math.min(9,Math.floor(this.direction*10)),row=Math.min(7,Math.floor(this.height*8));const goal=this.holes.some(h=>h.col===col&&h.row===row),g=PENALTY_GOAL;this.result={x:g.x+(col+.5)*g.w/10,y:g.y+(row+.5)*g.h/8,goal,outcome:goal?'goal':'plate',points:goal?100:0,col,row};this.phase='flight';this.phaseTime=0;this.flight=0;this.shots++;return true;}
+  if(this.phase==='height'&&this.phaseTime>=.18){this.height=this.cursor;const col=Math.min(9,Math.floor(this.direction*10)),row=Math.min(7,Math.floor(this.height*8));const goal=this.holes.some(h=>col>=h.col&&col<h.col+2&&row>=h.row&&row<h.row+2),g=TARGET_WALL_GOAL;this.result={x:g.x+(col+.5)*g.w/10,y:g.y+(row+.5)*g.h/8,goal,outcome:goal?'goal':'plate',points:goal?100:0,col,row};this.phase='flight';this.phaseTime=0;this.flight=0;this.shots++;return true;}
   if(this.phase==='result'&&this.shots<5){this.prepare();return true;}return false;
  }
 }
@@ -242,7 +248,7 @@ const DETAIL_FIELDS=['rounds','seconds','points','rows','completed','hits','redH
 const freshDetails=()=>Object.fromEntries(MODES.map(m=>[m,Object.fromEntries(DETAIL_FIELDS.map(k=>[k,0]))]));
 function recordDetails(state,mode,m,finish){const d=state.details[mode];d.rounds++;d.seconds+=Math.floor(m.elapsed||0);d.points+=m.score;
  if(mode==='dribble'){d.rows+=m.passed;if(m.done)d.completed++;d.shots+=finish?.attempts||0;d.goals+=finish?.goals||0;}
- if(mode==='headers'){d.hits+=m.hits;d.redHits+=m.bonusHits;d.missed+=m.missed;d.maxBalls=Math.max(d.maxBalls,m.maxBalls);d.slowUses+=m.slowUses;d.clearUses+=Number(m.clearUsed);}
+ if(mode==='headers'){d.hits+=m.hits;d.redHits+=m.bonusHits;d.missed+=m.missed;d.maxBalls=Math.max(d.maxBalls,m.maxBalls);d.slowUses+=m.slowUses;d.clearUses+=m.clearUses;}
  if(mode==='free'){d.shots+=m.shots;d.goals+=m.goals;d.horizontal+=m.horizontalTotal||0;d.vertical+=m.verticalTotal||0;if(m.wall){d.wallRounds++;d.wallShots+=m.shots;d.wallGoals+=m.goals;}}
 }
 function resetPurchases(state,kind){
@@ -452,13 +458,17 @@ class PetCare {
  next(){if(!this.ready||this.done)return false;const next=CARE_STAGES.indexOf(this.stage)+1;if(next===4)this.done=true;else{this.stage=CARE_STAGES[next];this.visited.clear();}return true;}
  claim(h){if(!this.done||this.claimed)return false;this.claimed=true;awardHome(h,60);h.stats.care++;return true;}
 }
+function petJumpPose(w){
+ if(w.y<0){const p=clamp((w.vy+760)/1520,0,1);return {frame:p<.25?1:p<.7?2:3,sx:1-.08*Math.sin(p*Math.PI),sy:1+.08*Math.sin(p*Math.PI),angle:-.13*Math.cos(p*Math.PI)};}
+ const landing=clamp(1-(w.landingAge??1)/.18,0,1);return {frame:landing?3:Math.floor(w.elapsed*8)%4,sx:1+.12*landing,sy:1-.14*landing,angle:0};
+}
 class PetWalk {
- constructor(random=Math.random){Object.assign(this,{random,elapsed:0,y:0,vy:0,duck:false,lives:3,passed:0,obstacles:[],timer:1,done:false,failed:false,claimed:false,invincible:0});}
+ constructor(random=Math.random){Object.assign(this,{random,elapsed:0,y:0,vy:0,duck:false,lives:3,passed:0,obstacles:[],timer:1,done:false,failed:false,claimed:false,invincible:0,landingAge:1});}
  jump(){if(!this.done&&!this.failed&&this.y===0){this.vy=-760;this.duck=false;}}
  update(dt){
   if(this.done||this.failed)return;
   this.elapsed=Math.min(30,this.elapsed+dt);this.invincible=Math.max(0,this.invincible-dt);
-  this.vy+=1150*dt;this.y+=this.vy*dt;if(this.y>=0){this.y=0;this.vy=0;}
+  this.landingAge+=dt;const wasAirborne=this.y<0;this.vy+=1150*dt;this.y+=this.vy*dt;if(this.y>=0){if(wasAirborne)this.landingAge=0;this.y=0;this.vy=0;}
   this.timer-=dt;
   if(this.timer<=0){const types=['puddle','hole','fence','branch'];this.obstacles.push({x:(this.viewportWidth||480)+55,type:types[Math.floor(this.random()*types.length)],checked:false});this.timer+=1.9+this.random()*.65;}
   for(const o of this.obstacles){o.x-=185*Math.max(1,((this.viewportWidth||480)-105)/375)*dt;
@@ -1088,7 +1098,7 @@ class Renderer {
     const c=this.c, x=vertical?425:30,y=vertical?390:340,w=vertical?20:340,h=vertical?158:23;
     c.save();c.globalAlpha=active?1:.72;
     c.fillStyle='#102a3b';c.fillRect(x-3,y-3,w+6,h+6);
-    c.fillStyle='#9b4747';c.fillRect(x,y,w,h);
+    c.fillStyle=zones.length?'#9b4747':'#648fa0';c.fillRect(x,y,w,h);
     for(const [a,b] of zones) {c.fillStyle='#42d995';if(vertical)c.fillRect(x,y+a*h,w,(b-a)*h);else c.fillRect(x+a*w,y,(b-a)*w,h);}
     c.strokeStyle=hit===null?'#ffe28a':hit?'#a6ffca':'#ffb0a2';c.lineWidth=3;
     if(vertical) {this.line([[x-6,y+value*h],[x+w+6,y+value*h]],c.strokeStyle,4);this.text('2 · HÖHE',434,377,11,'#fff');}
@@ -1795,12 +1805,20 @@ Renderer.prototype.ball=function(x,y,radius=15,time=0,bonus=false,vx=0){
 const originalHeadersDraw=Renderer.prototype.headers;
 Renderer.prototype.headers=function(m,t){originalHeadersDraw.call(this,m,t);const c=this.c;for(const b of m.bursts){c.save();const q=b.age/.8;c.globalAlpha=1-q;for(let i=0;i<14;i++){const a=i*Math.PI*2/14,d=10+q*65;c.fillStyle=i%2?'#ffe482':b.bonus?'#ef465b':'#f1ffff';c.beginPath();c.arc(b.x+Math.cos(a)*d,b.y+Math.sin(a)*d+q*q*22,Math.max(1,5*(1-q)),0,7);c.fill();}c.strokeStyle=b.bonus?'#ff485f':'#dcffff';c.lineWidth=3*(1-q);c.beginPath();c.arc(b.x,b.y,15+q*42,0,7);c.stroke();c.restore();}};
 const originalPenaltyDraw=Renderer.prototype.penalty;
-Renderer.prototype.penalty=function(m,t,won){originalPenaltyDraw.call(this,m,t,won);if(!m.wall)return;const c=this.c,g=PENALTY_GOAL;
- // A solid target wall has two actual cut-outs, without revealing the aiming grid.
- c.save();c.beginPath();c.rect(g.x,g.y,g.w,g.h);for(const h of m.holes)c.rect(g.x+h.col*g.w/10,g.y+h.row*g.h/8,g.w/10,g.h/8);c.fillStyle='#176078';c.fill('evenodd');
- for(const h of m.holes){c.strokeStyle='#ffdb72';c.lineWidth=2;c.strokeRect(g.x+h.col*g.w/10,g.y+h.row*g.h/8,g.w/10,g.h/8);}c.restore();
- if(m.result){const p=clamp((m.flight-.5)/.9,0,1),b=ballAt(m.result,p,{x:185,y:605});this.ball(b.x,b.y,b.r,p*2,false,(m.result.x-185)*.3);}
- this.text(m.phase==='direction'?'TORWAND · 10 Bereiche breit':m.phase==='height'?'8 Bereiche hoch · Lochhöhe einschätzen':m.result?.goal?'LOCHTREFFER! +100':'Am Blech! Nächster Versuch.',240,92,15,'#153c45');
+Renderer.prototype.penalty=function(m,t,won){
+ if(!m.wall){originalPenaltyDraw.call(this,m,t,won);return;}
+ this.background('penalty',t);const c=this.c,g=TARGET_WALL_GOAL;
+ const paint=c.createLinearGradient(g.x,g.y,g.x+g.w,g.y+g.h);paint.addColorStop(0,'#3389a3');paint.addColorStop(1,'#13465d');c.fillStyle=paint;c.fillRect(g.x,g.y,g.w,g.h);c.strokeStyle='#fff3bf';c.lineWidth=7;c.strokeRect(g.x,g.y,g.w,g.h);
+ for(const [x,y] of [[g.x+9,g.y+9],[g.x+g.w-9,g.y+9],[g.x+9,g.y+g.h-9],[g.x+g.w-9,g.y+g.h-9]]){c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.fillStyle='#c5d5da';c.fill();}
+ for(const h of m.holes){const x=g.x+(h.col+1)*g.w/10,y=g.y+(h.row+1)*g.h/8,r=g.w/10;const dark=c.createRadialGradient(x,y,0,x,y,r);dark.addColorStop(0,'#07141d');dark.addColorStop(1,'#102934');c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=dark;c.fill();c.strokeStyle='#fdf4cc';c.lineWidth=5;c.stroke();c.strokeStyle='#d5a74a';c.lineWidth=2;c.stroke();}
+ const res=m.result,flight=m.flight,progress=res?clamp((flight-.5)/.9,0,1):0;
+ const pose=won?'celebrate_front':res&&flight<.2?'run_right_side':'shoot_side';this.player('ronaldo',pose,105+(res?clamp(flight/.2,0,1)*25:0),615,.7,won?t:res?Math.max(0,flight-.2):0,won||res?null:0);
+ const ball=res?ballAt(res,progress,{x:185,y:605}):{x:185,y:605,r:17};
+ if(res&&!res.goal&&progress===1){ball.y+=Math.min(75,Math.max(0,flight-1.4)*110);}
+ c.save();if(res?.goal&&progress===1)c.globalAlpha=1-clamp((flight-1.4)/.4,0,1);this.ball(ball.x,ball.y,ball.r,progress*2,false,res?(res.x-185)*.3:0);c.restore();
+ if(m.phase==='direction'||m.phase==='height'){c.save();c.translate(0,50);this.meter(m.phase==='direction'?m.cursor:m.direction,[],false,m.phase==='direction',null);c.restore();this.meter(m.phase==='height'?m.cursor:m.height,[],true,m.phase==='height',null);}
+ this.text(m.phase==='direction'?'TORWAND · Zwei große Ziellöcher':m.phase==='height'?'Jetzt die Höhe einschätzen':res?.goal?'LOCHTREFFER! +100':'Am Blech! Nächster Versuch.',240,92,15,'#153c45');
+ if(res?.goal&&progress===1)this.confetti(t);
 };
 
 // Home: keep original furniture silhouettes and add five materials per model.
@@ -1853,7 +1871,7 @@ const oldStart=start;
 start=async function(selected){await oldStart(selected);if(selected==='free'&&view==='play'&&targetWallSelected)model=new TargetWall();if(view==='play'&&mode==='headers')powerUI();};
 const oldControls=controls;
 controls=function(show,shooting=false){oldControls(show,shooting);if($('header-powers'))$('header-powers').hidden=!(show&&mode==='headers'&&view==='play');};
-function powerUI(){let group=$('header-powers');if(!group){group=document.createElement('div');group.id='header-powers';group.innerHTML='<button data-power="slow">⏳ Zeitlupe · 5 s</button><button data-power="clear">✦ Alle Bälle weg</button>';$('stage').append(group);group.onclick=e=>{const b=e.target.closest('[data-power]');if(!b||view!=='play'||paused||ended)return;advance(performance.now());if(ended)return;const ok=b.dataset.power==='slow'?model.useSlow():model.clearBalls();if(ok)tone();};}group.hidden=false;}
+function powerUI(){let group=$('header-powers');if(!group){group=document.createElement('div');group.id='header-powers';group.innerHTML='<button data-power="slow"><span>⏳ Zeitlupe</span></button><button data-power="clear"><span>✦ Alle Bälle weg</span></button>';$('stage').append(group);group.onclick=e=>{const b=e.target.closest('[data-power]');if(!b||view!=='play'||paused||ended)return;advance(performance.now());if(ended)return;const ok=b.dataset.power==='slow'?model.useSlow():model.clearBalls();if(ok)tone();};}group.hidden=false;}
 const oldFinishRound=finishRound;
 finishRound=function(title,description,won=false){if(!ended&&model){recordDetails(state,mode,model,finish);}oldFinishRound(title,description,won);if($('header-powers'))$('header-powers').hidden=true;};
 const oldShowResult=showResult;
@@ -1861,11 +1879,14 @@ showResult=function(){oldShowResult();if(resultInfo?.unlocked){const i=Math.floo
 const oldRoom=room;
 room=function(){oldRoom();if(view!=='trophies')return;const grid=$('overlay').querySelector('.trophy-grid');grid?.querySelectorAll('.trophy').forEach((node,i)=>{if(i<Math.floor(careerPoints(state)/10)){node.tabIndex=0;node.setAttribute('role','button');node.setAttribute('aria-label',`${RANKS[i+1]} groß ansehen`);node.onclick=()=>pictureDialog(i);node.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pictureDialog(i);}}}});const btn=document.createElement('button');btn.textContent='📊 Ausführliche Statistiken';btn.dataset.statistics='';$('overlay').querySelector('.modal-content').prepend(btn);};
 function statisticsUI(){if(model&&!ended)return;view='statistics';const labels={rounds:'Erfasste Runden',seconds:'Spielzeit (Sekunden)',points:'Erfasste Punkte',rows:'Reihen bewältigt',completed:'Komplette Läufe',hits:'Kopfbälle insgesamt',redHits:'Rote Bonusbälle getroffen',missed:'Normale Bälle verloren',maxBalls:'Maximal gleichzeitige Bälle',slowUses:'Zeitlupen genutzt',clearUses:'Ballräumen genutzt',shots:'Schüsse insgesamt',goals:'Tore insgesamt',horizontal:'Grüne Richtungsstopps',vertical:'Grüne Höhenstopps',wallRounds:'Torwandrunden',wallShots:'Torwandschüsse',wallGoals:'Torwandtreffer'};const fields={dribble:['rounds','seconds','points','rows','completed','shots','goals'],headers:['rounds','seconds','points','hits','redHits','missed','maxBalls','slowUses','clearUses'],free:['rounds','seconds','points','shots','goals','horizontal','vertical','wallRounds','wallShots','wallGoals']};overlay(`<div class="modal-content"><h2>Deine Spielstatistiken</h2><p>Detailwerte werden ab diesem Update erfasst. Frühere Runden und Rekorde bleiben erhalten; fehlende historische Ereignisse werden nicht geschätzt.</p>${MODES.map(m=>{const d=state.details[m];return `<h3>${names[m]}</h3><table><tbody><tr><td>Alle bisherigen Runden</td><td>${state.stats[m].played}</td></tr><tr><td>Rekord</td><td>${state.stats[m].best}</td></tr>${fields[m].map(k=>`<tr><td>${labels[k]}</td><td>${d[k]}</td></tr>`).join('')}<tr><td>Punkte pro erfasster Runde</td><td>${(d.points/Math.max(1,d.rounds)).toFixed(1)}</td></tr>${m==='dribble'?`<tr><td>Reihen pro Runde</td><td>${(d.rows/Math.max(1,d.rounds)).toFixed(2)}</td></tr>`:''}${m==='free'?`<tr><td>Torquote</td><td>${(100*d.goals/Math.max(1,d.shots)).toFixed(1)} %</td></tr>`:''}</tbody></table>`;}).join('')}<h3>Ronaldos Zuhause · Haustiere</h3><table><tbody><tr><td>Abgeschlossene Pflegerunden</td><td>${state.home.stats.care}</td></tr><tr><td>Gassirunden insgesamt</td><td>${state.home.stats.walks}</td></tr><tr><td>Gassi-Rekord: fehlerfreie Hindernisse</td><td>${state.home.stats.bestWalk}</td></tr><tr><td>Abgeschlossene Fütterungsrunden</td><td>${state.home.stats.feeds}</td></tr></tbody></table><p>Diese Zuhause-Zähler enthalten auch bereits gespeicherte frühere Runden.</p><button data-house>Ronaldos Zuhause</button><button data-room>Trophäenraum</button><button data-home>Hauptmenü</button></div>`,'modal');}
-$('overlay').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-shoot-mode')){targetWallSelected=b.dataset.shootMode==='wall';view='intro';mode='free';overlay(`<div class="card"><h2>${targetWallSelected?'Torwandschießen':'Elfmeterschießen'}</h2><p>${targetWallSelected?'Zwei Löcher wechseln nach jedem Versuch. Das Tor entspricht unsichtbar 10 Spalten und 8 Zeilen. Schätze die Position mit den beiden Balken ein. Fünf Schüsse. Jeder Lochtreffer zählt 100 Punkte.':instructions.free}</p><button class="primary" data-start="free">Los geht’s</button><button data-home>Hauptmenü</button></div>`);}if(b.hasAttribute('data-statistics'))statisticsUI();});
+$('overlay').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-shoot-mode')){targetWallSelected=b.dataset.shootMode==='wall';view='intro';mode='free';overlay(`<div class="card"><h2>${targetWallSelected?'Torwandschießen':'Elfmeterschießen'}</h2><p>${targetWallSelected?'Zwei runde Löcher sind jeweils 2 × 2 Felder groß und wechseln nach jedem Versuch. Das Tor entspricht unsichtbar 10 Spalten und 8 Zeilen. Schätze die Position mit den beiden Balken ein. Fünf Schüsse. Jeder Lochtreffer zählt 100 Punkte.':instructions.free}</p><button class="primary" data-start="free">Los geht’s</button><button data-home>Hauptmenü</button></div>`);}if(b.hasAttribute('data-statistics'))statisticsUI();});
 const oldMenu=menu;
 menu=function(){oldMenu();if($('header-powers'))$('header-powers').hidden=true;const b=document.createElement('button');b.dataset.statistics='';b.textContent='📊 Statistik';$('overlay').querySelector('.menu-tools')?.append(b);};
 const oldDraw=draw;
-draw=function(stamp){oldDraw(stamp);if(mode==='headers'&&view==='play'&&!ended){powerUI();const slow=$('header-powers').querySelector('[data-power="slow"]'),clear=$('header-powers').querySelector('[data-power="clear"]');slow.disabled=model.slowCooldown>0;slow.textContent=model.slowRemaining>0?`⏳ Zeitlupe ${model.slowRemaining.toFixed(1)} s`:model.slowCooldown>0?`⏳ Bereit in ${Math.ceil(model.slowCooldown)} s`:'⏳ Zeitlupe · 5 s';clear.disabled=model.clearUsed;clear.textContent=model.clearUsed?'✦ Bereits genutzt':'✦ Alle Bälle weg';}
+draw=function(stamp){oldDraw(stamp);if(mode==='headers'&&view==='play'&&!ended){powerUI();const slow=$('header-powers').querySelector('[data-power="slow"]'),clear=$('header-powers').querySelector('[data-power="clear"]');slow.disabled=model.slowCooldown>0;clear.disabled=model.clearCooldown>0;
+ for(const [button,cooldown,label] of [[slow,model.slowCooldown,'Zeitlupe'],[clear,model.clearCooldown,'Alle Bälle weg']]){button.style.setProperty('--charge',`${clamp(1-cooldown/30,0,1)*100}%`);button.setAttribute('aria-label',`${label}: ${cooldown>0?'lädt auf':'einsatzbereit'}`);button.classList.toggle('charging',cooldown>0);}
+ slow.classList.toggle('active-power',model.slowRemaining>0);
+ }
  if(mode==='free'&&model?.wall){$('detail').textContent=`TORWAND ${Math.min(model.shots+(model.phase==='direction'||model.phase==='height'?1:0),5)}/5`;$('action').disabled=model.phase==='flight'||model.phase==='result'&&model.shots===5;$('action').textContent=model.phase==='direction'?'1 · Richtung stoppen':model.phase==='height'?'2 · Höhe stoppen':model.phase==='flight'?'Schuss …':'Nächster Torwandschuss';if(view==='play'&&model.phase==='result'&&model.shots===5&&model.phaseTime>=1)finishRound('Torwand-Finale!',`${model.goals} Lochtreffer aus fünf Schüssen.`,model.goals>=3);}
 };
 
@@ -1890,7 +1911,7 @@ HomeController.prototype.drawWalk=function(){
  }else{const frame=4+Math.floor(w.elapsed*10)%8,scale=.42;c.save();c.translate(105-192*scale,360-364*scale);c.scale(scale,scale);c.drawImage(this.avatarSheet(),frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,HOME_META[this.state.equipped.top][frame],this.state.equipped);c.restore();}
  c.restore();
  // Pet shares the jump plane, drawn slightly in front of Ronaldo.
- const pf=w.y<0?1:Math.floor(w.elapsed*8)%4;c.drawImage(this.assets[this.pet+'.png'],pf*256,0,256,256,66,360+w.y*.7-69,78,78);
+ const petPose=petJumpPose(w);c.save();c.translate(105,360+w.y*.7);c.rotate(petPose.angle);c.scale(petPose.sx,petPose.sy);c.drawImage(this.assets[this.pet+'.png'],petPose.frame*256,0,256,256,-39,-69,78,78);c.restore();
 };
 
 

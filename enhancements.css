@@ -71,3 +71,9 @@ body.home-expanded #stage{max-width:none}
 .home-mode .care-stage{width:100%;height:auto;aspect-ratio:480/330;max-width:none}
 .home-mode .care-stage canvas{display:block;position:relative;inset:auto;width:100%;height:auto;aspect-ratio:480/330;object-fit:fill;transform:translateY(-6%)}
 .home-mode .care-stage canvas{transform:translateY(-17%)}
+#header-powers button{position:relative;isolation:isolate;overflow:hidden;background:#d6e1d9;color:#183e34;opacity:1;--charge:100%}
+#header-powers button::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,#f5d67c,#dceeb1);width:var(--charge);transition:width .1s linear;pointer-events:none}
+#header-powers button span{position:relative;z-index:1}
+#header-powers button.charging{color:#3c5148;cursor:default}
+#header-powers button.active-power{border-color:#29935f;box-shadow:0 0 0 2px #70c69588}
+#header-powers button:disabled{opacity:1}

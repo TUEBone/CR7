@@ -110,8 +110,7 @@ werden gegen den tatsächlich gestarteten Code in `tests/current-game.test.js` g
 - Der Fußball besitzt ein dreidimensional projiziertes Muster aus zwölf Fünf- und
   zwanzig Sechsecken. Er rollt nach vorne beziehungsweise gemäß seitlicher Flugrichtung.
 - Kopfball: rote Bälle zerplatzen beim Treffer und Verlassen des Feldes. Zeitlupe
-  dauert fünf Sekunden und ist alle 30 Spielsekunden wieder verfügbar. Ballräumen
-  ist einmal pro Runde möglich; anschließend starten neue normale Bälle oben.
+  dauert fünf Sekunden und ist alle 30 Spielsekunden wieder verfügbar. Ballräumen lädt sich ebenfalls nach 30 Spielsekunden wieder auf; anschließend starten neue normale Bälle einzeln mit Abstand oben.
 - Unter **Elfmeterschießen** lässt sich **Torwandschießen** wählen: fünf Schüsse,
   zwei zufällige Löcher, internes Zielraster 10 × 8. Diese Runden zählen ebenfalls
   zur Elfmeter-Karriere. Die Balken zeigen keine grünen Zielfenster: Position schätzen.
@@ -203,3 +202,29 @@ Browserprüfung: `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node 
 
 Browserprüfung dieser Korrekturen:
 `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/refinement-browser-check.cjs`.
+
+
+## Torwand und Kopfball-Hilfen: weitere Anpassung
+
+- Torwandschießen zeichnet eine eigene blickdichte Wand ohne Torwart, auch während
+  des Ballflugs. Zwei große runde Löcher ersetzen die kleinen eckigen Öffnungen.
+  Jedes Loch akzeptiert ein 2 × 2 großes Feldgebiet des unsichtbaren 10 × 8-Rasters.
+  Die vier zugehörigen Schusspositionen liegen innerhalb des sichtbaren Kreises.
+  Die Öffnungen liegen innerhalb der Wand und überlappen nicht. Fünf Schüsse und
+  die Verbuchung zur Elfmeter-Karriere bleiben erhalten.
+- Der Torwand-Cursor bewegt sich mit 0,72 statt 1,12 normierten Einheiten pro Sekunde.
+  Die Geschwindigkeit im normalen Elfmeterschießen ändert sich nicht.
+- Beide Kopfball-Hilfen starten einsatzbereit und laden nach Benutzung in jeweils
+  30 Spielsekunden wieder vollständig auf. Die Schaltflächen zeigen dies als
+  zunehmende Füllung ohne Countdown. Die Zeitlupe wirkt unverändert fünf Sekunden.
+  Ballräumen ist jetzt mehrfach pro Runde möglich, sobald es wieder aufgeladen ist.
+- Nach dem Ballräumen erscheint der erste normale Ball nach etwa 0,75 Sekunden,
+  jeder weitere mit etwa 1,1 Sekunden Abstand. Rote Bonusbälle werden verschoben,
+  damit sie nicht zusammen mit der Rückkehrwelle erscheinen. Pause hält die
+  Aufladung und die Rückkehrfristen an.
+- Beim Gassigehen wechseln Hund und Katze während Absprung, Flug und Landung ihre
+  vorhandenen Sprung-/Laufbilder. Kleine Drehung, Streckung und eine kurze
+  Landestauchbewegung ergänzen den bisherigen Sprung, ohne die Trefferlogik zu ändern.
+
+Browserprüfung:
+`PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/arcade-browser-check.cjs`.
