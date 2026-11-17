@@ -22,3 +22,8 @@ Ronaldo-Alltagskleidung; zwei Spalten und drei Kleidungsreihen.
 `home/park.png`: neu generierter gezeichneter Parkhintergrund.
 Die drei Dateien wurden mit dem Bildwerkzeug erstellt und liegen lokal im Projekt.
 Die beruhigenden Instrumental-Loops sind eigene prozedurale Web-Audio-Kompositionen.
+
+`home/wardrobes.png`: neu anhand der vorhandenen Schrankgrafiken generierter
+transparenter Atlas mit fünf unterschiedlichen Schrankbauformen (Dreitürer,
+Schiebetüren, Bogen, Regal-Kombination, Landhaus). Der Renderer verwendet die
+fünf einzelnen Motivbereiche und erzeugt die Materialfarben lokal zur Laufzeit.

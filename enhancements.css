@@ -64,3 +64,10 @@ body.home-expanded #stage{max-width:none}
 .victory-skip{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff4dbe8;color:#1b3d47;border-color:#ffe4a1;min-height:48px}
 .victory-skip:active{transform:translateX(-50%) scale(.97)}
 @media(max-height:450px){.victory-caption{top:12px;text-align:left;left:20px;right:auto;max-width:32%}.victory-caption h2{font-size:36px}.victory-caption span{font-size:9px;letter-spacing:1px}.victory-caption p{font-size:12px}.victory-skip{left:auto;right:14px;transform:none;bottom:14px;font-size:12px}.victory-skip:active{transform:scale(.97)}}
+/* Restore the pre-fullscreen proportions: room art remains 4:3 inside the panel. */
+.home-mode .home-room{width:100%;height:auto;aspect-ratio:4/3;background-size:100% 100%;position:relative}
+.home-mode .room-furniture,.home-mode .room-ronaldo{object-fit:contain}
+.home-mode .room-pet,.home-mode .room-pet:hover,.home-mode .room-pet:active{transform:translate(-50%,-91%)}
+.home-mode .care-stage{width:100%;height:auto;aspect-ratio:480/330;max-width:none}
+.home-mode .care-stage canvas{display:block;position:relative;inset:auto;width:100%;height:auto;aspect-ratio:480/330;object-fit:fill;transform:translateY(-6%)}
+.home-mode .care-stage canvas{transform:translateY(-17%)}

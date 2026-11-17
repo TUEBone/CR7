@@ -181,3 +181,25 @@ die Siegerpose statisch für eine Sekunde. Das Rundenergebnis ist bereits vor de
 Jubel gespeichert; Rückkehr aus Speichern oder Auswertung spielt ihn nicht erneut.
 
 Browserprüfung: `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/victory-browser-check.cjs`.
+
+## Korrektur der Proportionen und Möbelauswahl
+
+- Ronaldos Zuhause verwendet wieder die frühere Paneldarstellung; Zimmer und
+  Garten bleiben unverzerrt im Seitenverhältnis 4:3. Die bildschirmfüllende
+  Streckung entfällt. Pflege behält die ursprünglichen Canvas- und Figurengrößen;
+  das Tier wird nur nach oben vor/in die Wanne versetzt. Pflegezonen und Anzeige
+  erhalten denselben Versatz.
+- Der Ball rollt im Ansturmlauf und in dessen Torfinale nach unten. Die übrigen
+  Spielmodi behalten ihre eigene Rotationsrichtung.
+- Der Möbelladen trennt Modell und Farbe: fünf Modellkarten auswählen, danach
+  fünf echte Farb-/Materialvarianten ansehen, kaufen oder aufstellen. Die fünf
+  Schränke haben klar verschiedene Bauformen; Weiß, Petrol, Walnuss usw. werden
+  pixelweise mit Erhalt von Konturen, Textur und Transparenz eingefärbt statt
+  mit einem kaum sichtbaren Farbfilter. Gespeicherte Möbel-IDs und Preise bleiben
+  kompatibel, ebenso Besitz und Erstattungen.
+- Die Statistikansicht zeigt jetzt auch abgeschlossene Pflegerunden, Gassirunden,
+  den Gassi-Rekord und Fütterungsrunden. Diese Zähler waren bereits gespeichert;
+  frühere Werte werden daher angezeigt. „Tierstatistiken“ öffnet sie direkt im Zuhause.
+
+Browserprüfung dieser Korrekturen:
+`PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/refinement-browser-check.cjs`.
