@@ -313,3 +313,13 @@ Hund und Katze sind beim Waschen gegenüber der vorherigen Version doppelt so gr
 Nach 30 Sekunden endet die Gassirunde mit einer Auslaufphase: Es kommen keine Hindernisse mehr, ein laufender Sprung wird beendet, dann verlassen Ronaldo und Tier gemeinsam rechts das Bild. Erst danach gibt es die Belohnung. Matschpfützen, Felsen, Holzzäune und Äste verwenden transparente Comicgrafiken. Vorschauen im Zuhause bleiben über einem unabhängig scrollbaren Auswahlbereich sichtbar; auch die Fußball-Umkleide hält ihre Figur beim Scrollen fest.
 
 Prüfung: `npm test` (37 Tests) und `PLAYWRIGHT_PATH=/pfad/zu/playwright node scripts/walk-care-browser-check.cjs` (mobile Vorschauen, vier Pflegestufen mit echten Zeigerbewegungen, Auslaufen und Grafikdarstellung).
+
+### Eigene Songs und Stadiontöne
+
+Die ersten fünf Plattenspieler-Titel sind die vom Nutzer gelieferten MP3-Songs, in der angegebenen Reihenfolge. Freischaltungen und gespeicherte Titelauswahl bleiben erhalten. Songs und die späteren Instrumentalstücke laufen ausschließlich in den Zuhause- und Gartenbereichen. Die Gassirunde bleibt ohne Musik oder Stadionkulisse. In allen Fußballspielen und Fußballmenüs läuft die Crowd-Datei in Schleife. Der Schusston ertönt beim Ansturm-Abschluss, beim Kopfballkontakt, beim Elfmeter und bei der Torwand; zur großen Siegerpose ertönt Siiuu. Während des Jubels wird die Crowd abgesenkt.
+
+Der Schalter **Ton an/aus** schaltet Musik, Fans und Effekte gemeinsam. Ton startet nach dem Antippen; beim Verlassen des Browserfensters wird die Wiedergabe pausiert. Lange Songs werden gestreamt, nur die kurzen Effekte werden in Web Audio dekodiert. Relative lokale Dateipfade funktionieren auch unter dem GitHub-Pages-Unterverzeichnis.
+
+Die Dateien in `assets/audio` sind mit gemessener zweistufiger EBU-R128-Normalisierung auf ungefähr −18 LUFS angeglichen; der kurze, stark dynamische Schuss bekommt vorher eine Spitzenbegrenzung. `assets/audio/loudness.json` dokumentiert die Analyse. Reproduzierbar mit `python3 scripts/prepare_audio.py /pfad/zu/den/Uploads`; benötigt FFmpeg. Hintergrundlautstärke: Songs 45 %, Fans 18 %; Effekte 80 %, Fans beim Jubel zusätzlich auf 35 % abgesenkt. Dies sind Mischpegel nach der Dateinormalisierung.
+
+Browserprüfung: `PLAYWRIGHT_PATH=/pfad/zu/playwright node scripts/audio-browser-check.cjs` prüft tatsächliche MP3-Wiedergabe, alle fünf Songs, Garten/Gassi-Wechsel, Schussauslöser in allen vier Fußballmodi, Jubel mit Lautstärkeabsenkung und Stummschaltung.

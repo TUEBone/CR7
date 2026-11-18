@@ -16,8 +16,8 @@ html = (repo / 'index.html').read_text()
 source = (repo / 'js/game.js').read_text()
 # Resolve dynamic home-asset paths without an HTTP server.
 resources = {f'../{path.relative_to(repo).as_posix()}': data_url(path)
-             for folder in ('assets/home', 'assets/pets')
-             for path in (repo / folder).glob('*.png')}
+             for folder in ('assets/home', 'assets/pets', 'assets/audio')
+             for path in (repo / folder).iterdir() if path.suffix in ('.png', '.mp3')}
 import json
 source = 'const OFFLINE_ASSETS=' + json.dumps(resources) + ';\n' + source
 source = source.replace('new URL(path,import.meta.url).href', 'OFFLINE_ASSETS[path]')

@@ -44,3 +44,7 @@ Fußboden behalten ihre bisherigen Positionen; die Vase sitzt auf Höhe der Rega
 
 - `home/pet-shower-grounded.png`: mit dem Bildgenerator erstellte Überarbeitung der vorhandenen Comicdusche; erhöhte Bodenlinie und sichtbarer Bodenkontakt der Duschwanne (18.11.2026).
 - `home/walk-obstacles.png`: mit dem Bildgenerator erstellter transparenter 2×2-Atlas für Matschpfütze, moosigen Felsen, Holzzaun und belaubten Ast im Comicstil des Parks (18.11.2026). Das Spiel schneidet die vier Zellen zur Laufzeit anhand ihres Alphakanals zu.
+
+## Vom Nutzer gelieferte Audiodateien (18.11.2026)
+
+`audio/shot.mp3`, `crowd.mp3`, `siuuu.mp3` sowie `song-1.mp3` bis `song-5.mp3` stammen aus den acht ausdrücklich zur Integration hochgeladenen MP3-Dateien. Titelreihenfolge: Cristiano Ronaldo NO BATIDAO, Der Ronaldo-Song, Der Cristiano Ronaldo Song, CRISTIANO RONALDO AUF WIEDERSEHEN, Der Messi-Ronaldo Song (GOAT). Die Dateien wurden für das Spiel in der Lautstärke angeglichen und als MP3 mit 160 kbit/s gespeichert. Originalnamen und Messwerte stehen in `audio/loudness.json`; Verarbeitung: `scripts/prepare_audio.py`.

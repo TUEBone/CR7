@@ -1,0 +1,74 @@
+{
+  "shot": {
+    "source": "1-Schuss.mp3",
+    "analysisLUFS": -29.67,
+    "preprocessing": "volume=30dB,alimiter=limit=0.2:level=false:attack=1:release=20,",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.43,
+    "outputDBTP": -5.36
+  },
+  "crowd": {
+    "source": "2-Crowd.mp3",
+    "analysisLUFS": -34.33,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.61,
+    "outputDBTP": -3.31
+  },
+  "siuuu": {
+    "source": "3-Suiii.mp3",
+    "analysisLUFS": -12.16,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.44,
+    "outputDBTP": -14.37
+  },
+  "song-1": {
+    "source": "4-1-Cristiano-Ronaldo-NO-BATIDAO-.mp3",
+    "analysisLUFS": -4.41,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.44,
+    "outputDBTP": -11.02
+  },
+  "song-2": {
+    "source": "5-2-Der-Ronaldo-Song.mp3",
+    "analysisLUFS": -11.01,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.52,
+    "outputDBTP": -4.59
+  },
+  "song-3": {
+    "source": "6-3-Der-Cristiano-Ronaldo-Song.mp3",
+    "analysisLUFS": -11.88,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.48,
+    "outputDBTP": -6.1
+  },
+  "song-4": {
+    "source": "7-4-CRISTIANO-RONALDO_-AUF-WIEDERSEHEN-.mp3",
+    "analysisLUFS": -6.39,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.5,
+    "outputDBTP": -8.32
+  },
+  "song-5": {
+    "source": "8-5-Der-Messi-Ronaldo-Song-GOAT-.mp3",
+    "analysisLUFS": -14.2,
+    "preprocessing": "",
+    "targetLUFS": -18,
+    "truePeakLimitDBTP": -1.5,
+    "outputLUFS": -18.44,
+    "outputDBTP": -4.85
+  }
+}

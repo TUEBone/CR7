@@ -877,7 +877,7 @@ function shotFrame(result, flight,options={}) {
   return {ball,keeper:{x,y,pose,frame,scale,groundY,landed:landing===1},caught};
 }
 
-// Original, procedural stadium-game loop: no downloads or external audio files.
+// Procedural instruments remain available for the later record-player tracks.
 // Web Audio is initialised only by the player's explicit music-button gesture.
 class Soundtrack {
   constructor() {
@@ -1529,7 +1529,7 @@ function hitTarget(index) {
   if (view !== 'play' || paused || finish?.phase !== 'targets') return;
   if (finish.hit(index)) {
     tone();
-    if (finish.phase==='shot') overlay('');
+    if (finish.phase==='shot') {overlay('');soundtrack.playEffect('shot');}
     else targetUI();
   }
 }
@@ -1641,7 +1641,7 @@ function move(d) { if (view === 'play' && !paused && !ended && !finish && mode =
 function action() {
   advance(performance.now());
   if (view !== 'play' || paused || ended || finish) return;
-  if (mode === 'free') model.tap();
+  if (mode === 'free') {const before=model.phase;model.tap();if(before==='height'&&model.phase==='flight')soundtrack.playEffect('shot');}
 }
 function targetPress(event) {
   const button = event.target.closest('[data-target]');
@@ -1679,10 +1679,10 @@ $('sound').onclick = async () => {
   $('sound').disabled=true;
   await soundtrack.setEnabled(!soundtrack.enabled);
   $('sound').disabled=false;
-  $('sound').textContent=soundtrack.enabled?'Musik an':'Musik aus';
+  $('sound').textContent=soundtrack.enabled?'Ton an':'Ton aus';
   $('sound').setAttribute('aria-pressed',String(soundtrack.enabled));
   $('sound').setAttribute('aria-label',soundtrack.enabled?'Musik und Spieltöne ausschalten':'Musik und Spieltöne einschalten');
-  if(!soundtrack.enabled)announce('Musik aus.');
+  if(!soundtrack.enabled)announce('Ton aus.');
 };
 for (const [id,d] of [['left',-1],['right',1]]) {
   $(id).onpointerdown = e => { e.preventDefault(); $(id).setPointerCapture(e.pointerId); move(d); keys.add(id); repeat=.14; };
@@ -1735,7 +1735,7 @@ function advance(stamp) {
       finishRound(finish.goals===3?'Siuuu!':finish.goals?'Starker Abschluss!':'Gehalten!',`${finish.goals} von 3 Torschüssen versenkt. ${finish.bonusScore} Bonuspunkte.`,finish.goals>0);
     } else if(finish.phase==='ready'&&phase!=='ready') finalReadyUI();
     else if(finish.phase==='targets'&&phase==='countdown') targetUI();
-    else if(finish.phase==='shot'&&phase==='targets'){overlay('');tone(finish.success);}
+    else if(finish.phase==='shot'&&phase==='targets'){overlay('');soundtrack.playEffect('shot');}
     else if(finish.phase==='countdown') {
       const number=$('countdown-number'),text=String(Math.ceil(finish.countdown));
       if(number&&number.textContent!==text){number.textContent=text;tone();}
@@ -1752,7 +1752,7 @@ function advance(stamp) {
     if(mode==='dribble'&&direction) {repeat-=dt;if(repeat<=0){move(direction);repeat+=.14;}}
     const oldScore=model.score,oldPhase=model.phase;model.update(dt);
     if(mode==='free'&&model.wall&&oldPhase==='flight'&&model.phase==='result'){recordShotStreak(state,'wall',model.result.goal);persist();}
-    if(mode==='headers'&&model.score!==oldScore)tone();
+    if(mode==='headers'&&model.score!==oldScore)soundtrack.playEffect('shot');
     if(mode==='dribble'&&model.done)beginFinish();
     if(model.failed)finishRound(mode==='dribble'?'Abgefangen!':'Stark geköpft!',mode==='dribble'?`${model.passed} von 18 Reihen geschafft. Finde beim nächsten Mal die freie Spur!`:`${model.hits} Kopfbälle in ${Math.floor(model.elapsed)} Sekunden. Schaffst du noch mehr?`);
     if(mode==='free'&&model.phase==='result'&&model.shots===10&&model.phaseTime>=1)
@@ -1761,7 +1761,8 @@ function advance(stamp) {
 }
 function draw(stamp) {
   advance(stamp);
-  soundtrack.setPaused(document.hidden||!document.hasFocus()||['pause','save','loading','home-loading'].includes(view)||(view==='home'&&homeController?.scene==='walk'&&homeController.walkPaused));
+  soundtrack.setScene(audioScene(view,homeController?.scene,soundtrack.track));
+  soundtrack.setPaused(document.hidden||!document.hasFocus()||['save','home-loading'].includes(view)||(view==='home'&&homeController?.scene==='walk'&&homeController.walkPaused));
   if(!model)r.menu(stamp/1000);
   else if(mode==='dribble')r.dribble(model,time,finish,ended&&resultInfo?.won);
   else if(mode==='headers')r.headers(model,time);
@@ -1780,11 +1781,11 @@ function draw(stamp) {
 }
 // Shared visual and interface improvements for the current game.
 const CALM_TRACKS=[
- ['Ankommen',64,[48,53,55,48],[12,16,19,16,14,12,7,12]],
- ['Morgenlicht',66,[50,55,57,50],[12,19,16,14,16,12,9,7]],
- ['Gartenwind',62,[45,50,52,45],[12,15,19,22,19,15,10,12]],
- ['Meeresruhe',60,[48,55,53,48],[19,16,12,14,16,19,24,19]],
- ['Wolkenreise',68,[53,48,50,55],[12,16,21,19,16,14,12,7]],
+ ['Cristiano Ronaldo · NO BATIDÃO',64,[48,53,55,48],[12,16,19,16,14,12,7,12]],
+ ['Der Ronaldo-Song',66,[50,55,57,50],[12,19,16,14,16,12,9,7]],
+ ['Der Cristiano Ronaldo Song',62,[45,50,52,45],[12,15,19,22,19,15,10,12]],
+ ['Cristiano Ronaldo · Auf Wiedersehen',60,[48,55,53,48],[19,16,12,14,16,19,24,19]],
+ ['Der Messi-Ronaldo Song · GOAT',68,[53,48,50,55],[12,16,21,19,16,14,12,7]],
  ['Abendsonne',58,[43,48,50,43],[12,19,16,12,7,9,12,14]],
  ['Sternengarten',64,[50,45,55,48],[24,19,16,19,21,16,14,12]],
  ['Leiser Regen',61,[45,53,48,55],[12,15,22,19,15,12,10,7]],
@@ -1804,7 +1805,43 @@ Soundtrack.prototype.schedule=function(){
  }
 };
 soundtrack.track=state.home.estate.track;
-function selectTrack(index){if(!Number.isInteger(index)||index<0||index>Math.floor(careerPoints(state)/10))return false;state.home.estate.track=index;soundtrack.stop();soundtrack.track=index;soundtrack.step=0;soundtrack.setEnabled(true);persist();$('sound').textContent='Musik an';$('sound').setAttribute('aria-pressed','true');return true;}
+function selectTrack(index){if(!Number.isInteger(index)||index<0||index>Math.floor(careerPoints(state)/10))return false;state.home.estate.track=index;soundtrack.stop();soundtrack.track=index;soundtrack.step=0;soundtrack.setScene(audioScene(view,homeController?.scene,index));soundtrack.setEnabled(true);persist();$('sound').textContent='Ton an';$('sound').setAttribute('aria-pressed','true');return true;}
+
+// Uploaded, loudness-matched audio. One streaming player avoids decoding long songs.
+function audioScene(view,scene,track=0){
+ if(view==='home')return scene==='walk'?'quiet':track<5?'song-'+(track+1):'instrumental';
+ if(view==='home-loading')return 'quiet';
+ return 'crowd';
+}
+function uploadedAudioURL(name){const path='../assets/audio/'+name+'.mp3';return new URL(path,import.meta.url).href;}
+const startInstrumental=Soundtrack.prototype.start,stopAudio=Soundtrack.prototype.stop;
+Soundtrack.prototype.setScene=function(scene){const key=scene==='instrumental'?scene+':'+this.track:scene;if(this.audioKey===key)return;this.stop();this.audioKey=key;this.audioScene=scene;if(this.enabled&&!this.paused)this.start();};
+Soundtrack.prototype.backgroundVolume=function(){return (this.audioScene==='crowd'?.18:.45)*(this.jubilee ? .35 : 1);};
+Soundtrack.prototype.start=function(){
+ if(!this.enabled||this.paused||!this.context)return;
+ if(this.audioScene==='instrumental'){startInstrumental.call(this);return;}
+ if(!this.audioScene||this.audioScene==='quiet')return;
+ if(!this.background){this.background=new Audio();this.background.loop=true;this.background.preload='none';}
+ if(this.backgroundName!==this.audioScene){this.backgroundName=this.audioScene;this.background.src=uploadedAudioURL(this.audioScene);}
+ this.background.volume=this.backgroundVolume();this.background.play().catch(()=>{/* Browser can require another sound-button gesture. */});
+};
+Soundtrack.prototype.stop=function(){this.effectEpoch=(this.effectEpoch||0)+1;this.jubilee=false;stopAudio.call(this);this.background?.pause();};
+Soundtrack.prototype.effect=function(){}; // Replace the previous synthetic beeps with the uploaded effects.
+Soundtrack.prototype.loadEffect=function(name){
+ this.effectBuffers??=new Map();if(!this.effectBuffers.has(name)){const promise=fetch(uploadedAudioURL(name)).then(r=>{if(!r.ok)throw Error('Audio nicht verfügbar');return r.arrayBuffer();}).then(b=>this.context.decodeAudioData(b));this.effectBuffers.set(name,promise);promise.catch(()=>this.effectBuffers.delete(name));}
+ return this.effectBuffers.get(name);
+};
+const enableUploadedAudio=Soundtrack.prototype.setEnabled;
+Soundtrack.prototype.setEnabled=async function(enabled){const result=await enableUploadedAudio.call(this,enabled);if(result)for(const name of ['shot','siuuu'])this.loadEffect(name).catch(()=>{});return result;};
+Soundtrack.prototype.playEffect=async function(name){
+ if(!this.enabled||this.paused||!this.context||!['shot','siuuu'].includes(name))return;
+ const epoch=this.effectEpoch||0;
+ try{const buffer=await this.loadEffect(name);if(!this.enabled||this.paused||epoch!==(this.effectEpoch||0))return;
+  const voice=this.context.createBufferSource(),gain=this.context.createGain();voice.buffer=buffer;gain.gain.value=.8;voice.connect(gain);gain.connect(this.context.destination);this.voices.add(voice);
+  if(name==='siuuu'){this.jubilee=true;if(this.background)this.background.volume=this.backgroundVolume();}
+  voice.onended=()=>{this.voices.delete(voice);voice.disconnect();gain.disconnect();if(name==='siuuu'){this.jubilee=false;if(this.background)this.background.volume=this.backgroundVolume();}};voice.start();
+ }catch{/* Missing audio must never interrupt a round. */}
+};
 
 // A truncated icosahedron supplies the real pentagon/hexagon football pattern.
 function footballMesh(){
@@ -1869,7 +1906,7 @@ HomeController.prototype.shell=function(content){return oldHomeShell.call(this,c
 const oldRenderHome=HomeController.prototype.render;
 HomeController.prototype.render=function(){oldRenderHome.call(this);this.root.dataset.scene=this.scene;if(['pictures','music','reset'].includes(this.scene)){this.root.innerHTML=this.shell(this.extraContent());}if(['room','garden'].includes(this.scene))this.root.querySelector('#home-room')?.classList.add('natural-room');if(this.scene==='garden'){this.root.querySelectorAll('.garden-bed-hotspot').forEach((b,i)=>{b.style.left=(10+i*28.5)+'%';b.style.top='38.8%';});}if(this.scene==='room'){this.root.querySelector('.room-wardrobe')?.setAttribute('title','Kleiderschrank öffnen');}if(this.scene==='food'){this.root.querySelectorAll('[data-ha="buy-food"]').forEach(b=>{const f=FOODS.find(f=>f.id===b.dataset.id);if(this.state.estate.planted<(f.unlock||0)){b.disabled=true;b.textContent=`Ab ${f.unlock} Anpflanzungen`;}});} };
 HomeController.prototype.extraContent=function(){const points=careerPoints(state),e=this.state.estate;if(this.scene==='pictures')return `<h3>Deine Bilder für den Rahmen</h3><p>Bild antippen: groß ansehen. Anschließend kannst du es aufhängen.</p><div class="picture-list">${CAREER_STICKERS.map((src,i)=>`<button data-ha="picture-view" data-id="${i}" ${points<(i+1)*10?'disabled':''}><img src="${src}" alt="${RANKS[i+1]}"><span>${RANKS[i+1]} · ${(i+1)*10} Punkte</span></button>`).join('')}</div><button data-ha="picture-clear">Rahmen leeren</button><button data-ha="room">Zurück ins Zimmer</button>`;
- if(this.scene==='music')return `<h3>Entspannte Hintergrundmusik</h3><p>Jede Trophäe schaltet einen eigenen ruhigen Instrumental-Loop frei. Der gewählte Titel begleitet dich im gesamten Spiel.</p><div class="music-list">${CALM_TRACKS.map((a,i)=>`<button data-ha="track" data-id="${i}" ${i>Math.floor(points/10)?'disabled':''}>${e.track===i?'▶':'♫'} ${a[0]} · ${i?i*10+' Karrierepunkte':'Starttitel'}</button>`).join('')}</div><button data-ha="room">Zurück ins Zimmer</button>`;
+ if(this.scene==='music')return `<h3>Entspannte Hintergrundmusik</h3><p>Jede Trophäe schaltet einen weiteren Titel frei. Die ersten fünf Titel sind deine hochgeladenen Songs. Dein gewählter Titel läuft nur zu Hause und im Garten.</p><div class="music-list">${CALM_TRACKS.map((a,i)=>`<button data-ha="track" data-id="${i}" ${i>Math.floor(points/10)?'disabled':''}>${e.track===i?'▶':'♫'} ${a[0]} · ${i?i*10+' Karrierepunkte':'Starttitel'}</button>`).join('')}</div><button data-ha="room">Zurück ins Zimmer</button>`;
  return `<h3>Einkäufe zurücksetzen</h3><p>Die gekauften Gegenstände werden entfernt. Bezahlte Wohnmünzen und Trikotwahlen werden vollständig zurückgegeben. Karriere, Belohnungen, Spielpunkte, Pflanzen und Statistiken bleiben erhalten.</p><button data-ha="refund" data-id="kits">Fußballtrikots zurückgeben</button><button data-ha="refund" data-id="furniture">Möbel zurückgeben</button><button data-ha="refund" data-id="clothes">Alltagskleidung zurückgeben</button><button data-ha="room">Zurück ins Zimmer</button>`;
 };
 function pictureDialog(i,home=false){if(i<0||i>=Math.floor(careerPoints(state)/10))return;const d=document.createElement('dialog');d.className='picture-dialog';d.innerHTML=`<h2>${RANKS[i+1]}</h2><img src="${CAREER_STICKERS[i]}" alt="${RANKS[i+1]}">${home?'<button class="primary" data-hang>Bei Ronaldo aufhängen</button>':''}<button data-close>Schließen</button>`;document.body.append(d);d.querySelector('[data-close]').onclick=()=>d.close();if(home)d.querySelector('[data-hang]').onclick=()=>{state.home.estate.picture=i;persist();d.close();homeController?.change('room');};d.addEventListener('close',()=>d.remove());d.showModal();}
@@ -1999,7 +2036,7 @@ showResult=function(){
  const complete=()=>{if(closed)return;closed=true;cancelAnimationFrame(raf);dialog.close();dialog.remove();if(resultInfo===info&&view==='result')resultBeforeVictory();};
  dialog.querySelector('button').onclick=complete;
  dialog.addEventListener('cancel',e=>{e.preventDefault();e.stopPropagation();complete();});
- dialog.showModal();announce('Siuuu! Extra-Jubel für deine starke Runde.');
+ dialog.showModal();soundtrack.playEffect('siuuu');announce('Siuuu! Extra-Jubel für deine starke Runde.');
  const render=stamp=>{
   if(closed)return;
   const delta=lastStamp?Math.min(.1,Math.max(0,(stamp-lastStamp)/1000)):0;lastStamp=stamp;
