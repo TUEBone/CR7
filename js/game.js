@@ -445,8 +445,10 @@ class Feeding {
 const CARE_ZONES=[{"id":"forehead","x":72,"y":31,"rx":6,"ry":7},{"id":"ear","x":65,"y":37,"rx":6,"ry":7},{"id":"cheek","x":75,"y":39,"rx":6,"ry":7},{"id":"muzzle","x":82,"y":39,"rx":6,"ry":7},{"id":"chin","x":77,"y":48,"rx":6,"ry":7},{"id":"neck","x":65,"y":52,"rx":6,"ry":7},{"id":"chest","x":64,"y":62,"rx":6,"ry":7},{"id":"shoulder","x":57,"y":57,"rx":6,"ry":7},{"id":"back1","x":45,"y":55,"rx":6,"ry":7},{"id":"back2","x":34,"y":56,"rx":6,"ry":7},{"id":"flank1","x":37,"y":67,"rx":6,"ry":7},{"id":"flank2","x":49,"y":67,"rx":6,"ry":7},{"id":"belly","x":45,"y":73,"rx":6,"ry":7},{"id":"front1","x":75,"y":85,"rx":6,"ry":7},{"id":"front2","x":56,"y":87,"rx":6,"ry":7},{"id":"hind1","x":42,"y":86,"rx":6,"ry":7},{"id":"hind2","x":27,"y":86,"rx":6,"ry":7},{"id":"tail1","x":26,"y":61,"rx":6,"ry":7},{"id":"tail2","x":20,"y":56,"rx":6,"ry":7},{"id":"tail3","x":18,"y":48,"rx":6,"ry":7}];
 const CAT_CARE_ZONES=[{"id":"forehead","x":79,"y":34,"rx":6,"ry":7},{"id":"ear","x":77,"y":25,"rx":6,"ry":7},{"id":"cheek","x":79,"y":43,"rx":6,"ry":7},{"id":"muzzle","x":84,"y":44,"rx":6,"ry":7},{"id":"chin","x":80,"y":51,"rx":6,"ry":7},{"id":"neck","x":73,"y":56,"rx":6,"ry":7},{"id":"chest","x":69,"y":66,"rx":6,"ry":7},{"id":"shoulder","x":63,"y":62,"rx":6,"ry":7},{"id":"back1","x":54,"y":61,"rx":6,"ry":7},{"id":"back2","x":44,"y":61,"rx":6,"ry":7},{"id":"flank1","x":46,"y":69,"rx":6,"ry":7},{"id":"flank2","x":58,"y":69,"rx":6,"ry":7},{"id":"belly","x":55,"y":76,"rx":6,"ry":7},{"id":"front1","x":76,"y":85,"rx":6,"ry":7},{"id":"front2","x":60,"y":89,"rx":6,"ry":7},{"id":"hind1","x":47,"y":87,"rx":6,"ry":7},{"id":"hind2","x":26,"y":88,"rx":6,"ry":7},{"id":"tail1","x":32,"y":52,"rx":6,"ry":7},{"id":"tail2","x":26,"y":40,"rx":6,"ry":7},{"id":"tail3","x":20,"y":33,"rx":6,"ry":7}];
 const CARE_TRANSFORM={scale:.45,cx:50,cy:55,offsetY:-2};
-function carePoint(p){return {x:CARE_TRANSFORM.cx+(p.x-CARE_TRANSFORM.cx)*CARE_TRANSFORM.scale,y:CARE_TRANSFORM.cy+(p.y-CARE_TRANSFORM.cy)*CARE_TRANSFORM.scale+CARE_TRANSFORM.offsetY};}
-for(const z of [...CARE_ZONES,...CAT_CARE_ZONES]){const p=carePoint(z);z.x=p.x;z.y=p.y;z.rx*=CARE_TRANSFORM.scale;z.ry*=CARE_TRANSFORM.scale;}
+const CAT_CARE_TRANSFORM={scale:1,cx:50,cy:55,offsetY:-6};
+const careTransform=pet=>pet==='cat'?CAT_CARE_TRANSFORM:CARE_TRANSFORM;
+function carePoint(p,pet='dog'){const t=careTransform(pet);return {x:t.cx+(p.x-t.cx)*t.scale,y:t.cy+(p.y-t.cy)*t.scale+t.offsetY};}
+for(const [pet,zones] of [['dog',CARE_ZONES],['cat',CAT_CARE_ZONES]])for(const z of zones){const t=careTransform(pet),p=carePoint(z,pet);z.x=p.x;z.y=p.y;z.rx*=t.scale;z.ry*=t.scale;}
 const CARE_STAGES=['soap','rinse','brush','dry'];
 class PetCare {
  constructor(pet){this.pet=pet;this.zones=pet==='cat'?CAT_CARE_ZONES:CARE_ZONES;this.stage='soap';this.visited=new Set();this.rinseSeconds=0;this.dryingTool='towel';this.done=false;this.claimed=false;}
@@ -968,12 +970,15 @@ class SpriteBank {
     return canvas;
   }
   image(key) {
-    const id=this.kits[key.split('/')[0]]||'original';if(id==='original')return this.images.get(key);
-    if(!this.colored.has(key))this.colored.set(key,this.tint(key,id));return this.colored.get(key);
+    const original=this.images.get(key);
+    if(!original)return null; // Never cache a not-yet-loaded sprite as a tinted image.
+    const id=this.kits[key.split('/')[0]]||'original';if(id==='original')return original;
+    const cached=this.colored.get(key);if(cached)return cached;
+    const colored=this.tint(key,id);if(colored)this.colored.set(key,colored);return colored;
   }
   preview(character,id) {
     const key=`${character}/idle_front`,cache=key+':'+id;
-    if(!this.previews.has(cache))this.previews.set(cache,this.tint(key,id,true));
+    if(!this.previews.get(cache)){const preview=this.tint(key,id,true);if(preview)this.previews.set(cache,preview);}
     const source=this.previews.get(cache);if(!source)return document.createElement('canvas');
     const canvas=document.createElement('canvas');canvas.width=canvas.height=192;
     canvas.getContext('2d').drawImage(source,0,0,192,192);return canvas;
@@ -1323,7 +1328,7 @@ class HomeController {
 
  drawAvatar(canvas,frame=0){if(!canvas)return;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const sheet=this.avatarSheet(),e=this.state.equipped,m=HOME_META[e.top][frame],s=canvas.width/384;c.save();c.scale(s,s);c.drawImage(sheet,frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,m,e,1);c.restore();}
  drawAccessories(c,m,e,scale=1){const head=m.head;if(e.head!=='head-none'){const hat=this.assets[e.head+'.png'],w=head.width*(e.head==='hat'?1.9:1.65),h=w*hat.height/hat.width;c.drawImage(hat,head.x-w/2,head.y-h*.78,w,h);}if(e.eyes==='glasses'){const glasses=this.assets['glasses.png'],w=head.width*.86,h=w*glasses.height/glasses.width;c.drawImage(glasses,head.x-w/2,head.eye-h*.5-1,w,h);}}
- drawPet(canvas,pet,frame){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const size=Math.min(canvas.width,canvas.height*1.2);c.save();if(canvas.closest('.care-stage')){const t=CARE_TRANSFORM;c.translate(canvas.width*t.cx/100,canvas.height*(t.cy+t.offsetY)/100);c.scale(t.scale,t.scale);c.translate(-canvas.width*t.cx/100,-canvas.height*t.cy/100);}c.drawImage(this.assets[pet+'.png'],frame*256,0,256,256,(canvas.width-size)/2,(canvas.height-size)/2,size,size);c.restore();}
+ drawPet(canvas,pet,frame){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const size=Math.min(canvas.width,canvas.height*1.2);c.save();if(canvas.closest('.care-stage')){const t=careTransform(pet);c.translate(canvas.width*t.cx/100,canvas.height*(t.cy+t.offsetY)/100);c.scale(t.scale,t.scale);c.translate(-canvas.width*t.cx/100,-canvas.height*t.cy/100);}c.drawImage(this.assets[pet+'.png'],frame*256,0,256,256,(canvas.width-size)/2,(canvas.height-size)/2,size,size);c.restore();}
  frame(stamp){if(this.dead)return;const dt=Math.min(.05,Math.max(0,(stamp-this.last)/1000));this.last=stamp;if(!document.hidden&&document.hasFocus()){
   this.elapsed+=dt;
   if(this.scene==='room'||this.scene==='garden')this.frameRoom(dt);
@@ -1836,7 +1841,7 @@ Renderer.prototype.penalty=function(m,t,won){
 
 // Home: keep original furniture silhouettes and add five materials per model.
 const baseLoadHome=loadHomeAssets;
-loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.furnitureReady){for(const [key,path] of [['directions','../assets/pets/directions.png'],['walkPoses','../assets/home/walk-poses.png'],['park','../assets/home/park.png'],['wardrobes','../assets/home/wardrobes.png'],['gardenBeds','../assets/home/garden-beds.png'],['decor','../assets/home/decor.png']]){const im=new Image();im.src=new URL(path,import.meta.url).href;await im.decode();assets[key]=im;}
+loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.furnitureReady){for(const [key,path] of [['directions','../assets/pets/directions.png'],['walkPoses','../assets/home/walk-poses.png'],['park','../assets/home/park.png'],['wardrobes','../assets/home/wardrobes.png'],['gardenBeds','../assets/home/garden-beds.png'],['decor','../assets/home/decor.png'],['showerCloseup','../assets/home/pet-shower-closeup.png']]){const im=new Image();im.src=new URL(path,import.meta.url).href;await im.decode();assets[key]=im;}
  const originals={};for(const f of FURNITURE.filter(f=>!f.base))originals[f.id]=assets[f.id+'.png'];
  const atlas=assets.wardrobes,edges=[0,460,880,1270,1650,2172];
  for(const f of FURNITURE.filter(f=>FURNITURE_MODELS[f.slot])){
@@ -1846,7 +1851,7 @@ loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.fur
   const image=c.getImageData(0,0,cv.width,cv.height);image.data.set(recolorFurniturePixels(image.data,FURNITURE_COLORS[f.slot][f.color][1]));c.putImageData(image,0,0);
   const im=new Image();im.src=cv.toDataURL();await im.decode();assets[f.id+'.png']=im;
  }
- assets['garden.png']=assets.gardenBeds;
+ assets['garden.png']=assets.gardenBeds;assets['bathroom.png']=assets.showerCloseup;
  for(const [key,index] of [['recordPlayer',0],['flowerVase',1]]){const atlas=assets.decor,cv=document.createElement('canvas');cv.width=atlas.width/2;cv.height=atlas.height;const c=cv.getContext('2d');c.drawImage(atlas,index*atlas.width/2,0,atlas.width/2,atlas.height,0,0,cv.width,cv.height);const pixels=c.getImageData(0,0,cv.width,cv.height).data;let x0=cv.width,y0=cv.height,x1=0,y1=0;for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++)if(pixels[(y*cv.width+x)*4+3]>10){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const trim=document.createElement('canvas');trim.width=x1-x0+1;trim.height=y1-y0+1;trim.getContext('2d').drawImage(cv,x0,y0,trim.width,trim.height,0,0,trim.width,trim.height);const im=new Image();im.src=trim.toDataURL();await im.decode();assets[key]=im;}
  assets.furnitureReady=true;
  }

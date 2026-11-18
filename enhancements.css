@@ -102,3 +102,9 @@ body.home-expanded #stage{max-width:none}
 .home-mode .room-hotspot[data-ha=garden]:focus-visible{outline:2px solid #ffe18a;outline-offset:-2px}
 
 #stage.headers-play>canvas{border-radius:inherit}
+/* Keep the wardrobe clickable, without drawing a rectangle over the furniture. */
+.home-mode .room-wardrobe,.home-mode .room-wardrobe:hover,.home-mode .room-wardrobe:active{background:transparent;border:0;box-shadow:none;color:transparent;text-shadow:none}
+.home-mode .room-wardrobe:focus-visible{outline:2px solid #f3ce72;outline-offset:-2px;background:transparent;color:transparent}
+/* Keep the wardrobe clickable, but remove its old visible button panel. */
+.home-mode .room-wardrobe,.home-mode .room-wardrobe:hover,.home-mode .room-wardrobe:active{background:transparent;border:0;box-shadow:none;text-shadow:none;color:transparent}
+.home-mode .room-wardrobe:focus-visible{outline:2px solid #ffe18a;outline-offset:-2px;background:transparent;color:transparent}

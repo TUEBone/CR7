@@ -264,3 +264,25 @@ Browserprüfung:
 Zusätzliche Browserprüfung mit echten Pflege-Zeigergesten und gespeichertem
 23er-Torwandlauf:
 `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/nov18-browser-check.cjs`.
+
+## Korrektur: gespeicherte Trikots und Katzenpflege
+
+Der wiederkehrende Unsichtbarkeitsfehler im Kopfballspiel lag im Trikot-Bildcache:
+Bei einem gespeicherten anderen Trikot konnte der Menü-Zeichentakt die Ruhepose
+vor Abschluss des Bildladens anfordern. Das leere Ergebnis wurde als eingefärbtes
+Bild zwischengespeichert und später nicht ersetzt. Kopfballposen wurden erst nach
+dem Laden angefordert und blieben deshalb sichtbar. Der Cache speichert jetzt
+nur tatsächlich geladene Bilder; vorhandene leere Einträge werden erneut aufgebaut.
+Dies ist mit verzögertem Laden und gespeicherten Gold-, Madrid- und blauen Trikots
+nach einem Neuladen des Browsers getestet, einschließlich Bewegung und Kopfball.
+
+Der Schrank hat keine sichtbare Schaltflächenfläche und keinen dauerhaften Rahmen
+mehr. Er bleibt direkt anklickbar; eine Fokusmarkierung erscheint für die
+Tastaturbedienung. Bei der Pflege hat die Katze wieder die frühere volle Größe,
+mit entsprechend großen Pflegebereichen. Der Hund bleibt bei der kleineren Größe.
+Die neue Nahansicht `assets/home/pet-shower-closeup.png` zeigt eine große Wanne und
+Fliesen ohne Brause, Schläuche oder Raumhöhenansicht. Alle vier Katzenschritte sind
+mit echten Browser-Zeigergesten geprüft, ohne zusätzliche Mindestzeit.
+
+Gezielter Regressionstest:
+`PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/idle-cache-browser-check.cjs`.
