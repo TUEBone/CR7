@@ -27,3 +27,9 @@ Die beruhigenden Instrumental-Loops sind eigene prozedurale Web-Audio-Kompositio
 transparenter Atlas mit fünf unterschiedlichen Schrankbauformen (Dreitürer,
 Schiebetüren, Bogen, Regal-Kombination, Landhaus). Der Renderer verwendet die
 fünf einzelnen Motivbereiche und erzeugt die Materialfarben lokal zur Laufzeit.
+
+`home/garden-beds.png`: anhand der ursprünglichen Gartenansicht generierte Fassung
+mit drei größeren leeren Beeten; Pflanzsymbole werden auf deren Erde positioniert.
+`home/decor.png`: anhand des vorhandenen Raumstils generierter transparenter Atlas
+mit Plattenspieler und Vase; der Code trennt die beiden Motive an der Atlasmitte
+und entfernt die transparenten Ränder beim Laden.

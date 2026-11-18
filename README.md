@@ -228,3 +228,39 @@ Browserprüfung dieser Korrekturen:
 
 Browserprüfung:
 `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/arcade-browser-check.cjs`.
+
+## Sichtbarkeit, Zuhause und neue Statistiken (18. November)
+
+- Im Kopfballspiel stehen die beiden aufladbaren Hilfen jetzt unterhalb der
+  Spielfläche zwischen den Richtungstasten. Sie verdecken die Figur nicht mehr.
+  Die Ruhepose verwendet einen festen gültigen Sprite-Frame und bleibt vor und
+  nach einem Kopfball sichtbar. Die Spielfläche berücksichtigt den zusätzlichen
+  Bedienbereich auch bei kleineren Bildschirmhöhen.
+- Die Torwand ist grün. Der horizontale Balken sitzt unmittelbar unter der Wand
+  und ist exakt so breit wie sie. Der vertikale Balken steht links und ist exakt
+  so hoch wie sie. Der Ballradius nimmt während des Torwand-Flugs nur um 25 % ab;
+  die übrigen Flugbahnen bleiben unverändert.
+- Torwand- und Ansturm-Finalschüsse speichern ihre aktuelle und längste Trefferfolge
+  schussweise. Eine Serie kann über Rundengrenzen hinausgehen; nur ein Fehlschuss
+  setzt die aktuelle Folge zurück. Bereits ausgewertete Schüsse bleiben auch beim
+  anschließenden Abbruch erhalten. Fehlende historische Folgen werden nicht erraten.
+- Die Gartenstatistik zeigt alle bekannten Aufräumrunden, den bisherigen Rekord
+  sowie die ab diesem Update erfasste Gesamtzahl und den Durchschnitt entfernter
+  Haufen. Alte Aufräumrunden und Rekorde bleiben erhalten. Gesamtzahl/Durchschnitt
+  werden ausdrücklich nur für Runden mit bekanntem Einzelwert angegeben.
+- Schrank, Sofa und sitzender Ronaldo sind nach unten auf den Holzboden versetzt.
+  Ein gezeichneter Plattenspieler öffnet die Musikauswahl; die Vase ist ebenfalls
+  ein eigenes Bild. Das Gartenfenster bleibt anklickbar. Im Garten liegen drei
+  größere Beete, deren Pflanzsymbole innerhalb der sichtbaren Erde stehen. Tiere
+  und Aufräumziele bleiben unterhalb dieser Beetreihe.
+- Pflege zeichnet Hund/Katze mit 45 % der früheren Größe. Die Pflegebereiche werden
+  mit exakt derselben Transformation verkleinert und verschoben; die ganze
+  Duschgrafik und der Eingabe-Canvas bleiben in ihren bisherigen Proportionen.
+  Vollständige Flächenabdeckung bleibt die einzige Voraussetzung für den nächsten
+  Schritt, ohne zusätzliche Zehn-Sekunden-Frist.
+- Zuhause-Szenen öffnen wieder oben, damit die Raumgrafik beim Zurückkehren nicht
+  versehentlich aus dem sichtbaren Bereich gescrollt bleibt.
+
+Zusätzliche Browserprüfung mit echten Pflege-Zeigergesten und gespeichertem
+23er-Torwandlauf:
+`PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/nov18-browser-check.cjs`.
