@@ -450,13 +450,13 @@ class Feeding {
 const CARE_ZONES=[{"id":"forehead","x":72,"y":31,"rx":6,"ry":7},{"id":"ear","x":65,"y":37,"rx":6,"ry":7},{"id":"cheek","x":75,"y":39,"rx":6,"ry":7},{"id":"muzzle","x":82,"y":39,"rx":6,"ry":7},{"id":"chin","x":77,"y":48,"rx":6,"ry":7},{"id":"neck","x":65,"y":52,"rx":6,"ry":7},{"id":"chest","x":64,"y":62,"rx":6,"ry":7},{"id":"shoulder","x":57,"y":57,"rx":6,"ry":7},{"id":"back1","x":45,"y":55,"rx":6,"ry":7},{"id":"back2","x":34,"y":56,"rx":6,"ry":7},{"id":"flank1","x":37,"y":67,"rx":6,"ry":7},{"id":"flank2","x":49,"y":67,"rx":6,"ry":7},{"id":"belly","x":45,"y":73,"rx":6,"ry":7},{"id":"front1","x":75,"y":85,"rx":6,"ry":7},{"id":"front2","x":56,"y":87,"rx":6,"ry":7},{"id":"hind1","x":42,"y":86,"rx":6,"ry":7},{"id":"hind2","x":27,"y":86,"rx":6,"ry":7},{"id":"tail1","x":26,"y":61,"rx":6,"ry":7},{"id":"tail2","x":20,"y":56,"rx":6,"ry":7},{"id":"tail3","x":18,"y":48,"rx":6,"ry":7}];
 const CAT_CARE_ZONES=[{"id":"forehead","x":79,"y":34,"rx":6,"ry":7},{"id":"ear","x":77,"y":25,"rx":6,"ry":7},{"id":"cheek","x":79,"y":43,"rx":6,"ry":7},{"id":"muzzle","x":84,"y":44,"rx":6,"ry":7},{"id":"chin","x":80,"y":51,"rx":6,"ry":7},{"id":"neck","x":73,"y":56,"rx":6,"ry":7},{"id":"chest","x":69,"y":66,"rx":6,"ry":7},{"id":"shoulder","x":63,"y":62,"rx":6,"ry":7},{"id":"back1","x":54,"y":61,"rx":6,"ry":7},{"id":"back2","x":44,"y":61,"rx":6,"ry":7},{"id":"flank1","x":46,"y":69,"rx":6,"ry":7},{"id":"flank2","x":58,"y":69,"rx":6,"ry":7},{"id":"belly","x":55,"y":76,"rx":6,"ry":7},{"id":"front1","x":76,"y":85,"rx":6,"ry":7},{"id":"front2","x":60,"y":89,"rx":6,"ry":7},{"id":"hind1","x":47,"y":87,"rx":6,"ry":7},{"id":"hind2","x":26,"y":88,"rx":6,"ry":7},{"id":"tail1","x":32,"y":52,"rx":6,"ry":7},{"id":"tail2","x":26,"y":40,"rx":6,"ry":7},{"id":"tail3","x":20,"y":33,"rx":6,"ry":7}];
 const CARE_TRANSFORM={scale:.9,cx:50,cy:55,offsetY:-2};
-const CAT_CARE_TRANSFORM={scale:2,cx:50,cy:55,offsetY:-6};
+const CAT_CARE_TRANSFORM={scale:1,cx:50,cy:55,offsetY:-6};
 const careTransform=pet=>pet==='cat'?CAT_CARE_TRANSFORM:CARE_TRANSFORM;
 function carePoint(p,pet='dog'){const t=careTransform(pet);return {x:t.cx+(p.x-t.cx)*t.scale,y:t.cy+(p.y-t.cy)*t.scale+t.offsetY};}
 for(const [pet,zones] of [['dog',CARE_ZONES],['cat',CAT_CARE_ZONES]])for(const z of zones){const t=careTransform(pet),p=carePoint(z,pet);z.x=p.x;z.y=p.y;z.rx*=t.scale;z.ry*=t.scale;}
 const CARE_STAGES=['soap','rinse','brush','dry'];
 class PetCare {
- constructor(pet){this.pet=pet;this.zones=pet==='cat'?CAT_CARE_ZONES:CARE_ZONES;this.pan={x:pet==='cat'?-20:0,y:0};this.stage='soap';this.visited=new Set();this.rinseSeconds=0;this.dryingTool='towel';this.done=false;this.claimed=false;}
+ constructor(pet){this.pet=pet;this.zones=pet==='cat'?CAT_CARE_ZONES:CARE_ZONES;this.pan={x:0,y:0};this.stage='soap';this.visited=new Set();this.rinseSeconds=0;this.dryingTool='towel';this.done=false;this.claimed=false;}
  stroke(from,to,dt=0){
   if(this.done||Math.hypot(to.x-from.x,to.y-from.y)<.2)return;
   const steps=Math.min(200,Math.max(1,Math.ceil(Math.hypot(to.x-from.x,to.y-from.y))));let touched=false;
@@ -2005,10 +2005,6 @@ HomeController.prototype.render=function(){
  }
  if(!visual)return;
  const top=document.createElement('div');top.className='home-fixed-preview';const heading=this.root.querySelector('.home-heading');if(heading)top.append(heading);top.append(visual);
- if(this.scene==='care'&&!this.care.done&&this.pet==='cat'){
-  const camera=document.createElement('div');camera.className='care-camera';camera.setAttribute('aria-label','Ansicht verschieben');
-  for(const [label,dx,dy] of [['←',15,0],['↑',0,15],['↓',0,-15],['→',-15,0]]){const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-label','Ansicht '+label);b.onclick=()=>{this.cancelPointer();this.care.panBy(dx,dy);this.drawPet(visual.querySelector('canvas'),this.pet,0);this.updateCare();};camera.append(b);}top.append(camera);
- }
  const scroll=document.createElement('div');scroll.className='home-scroll-options';while(this.root.firstChild)scroll.append(this.root.firstChild);this.root.append(top,scroll);this.root.classList.add('pinned-home');if(same)scroll.scrollTop=previous;
 };
 

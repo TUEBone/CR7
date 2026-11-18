@@ -308,7 +308,7 @@ Browserprüfung mit echtem 200-Punkte-Schuss und Gartenwegen in beide Richtungen
 
 ### Pflege, Gassirunde und feste Vorschauen (18. November 2026)
 
-Hund und Katze sind beim Waschen gegenüber der vorherigen Version doppelt so groß. Pflegezonen, Schaum und Werkzeug folgen derselben Vergrößerung. Bei der Katze verschieben vier Ansichtspfeile den Ausschnitt, damit alle Körperbereiche erreichbar bleiben. Die neue Duschgrafik zeigt den Boden und den Schatten unter der Wanne.
+Der Hund ist beim Waschen gegenüber der vorherigen Version doppelt so groß. Die Katze behält auf Wunsch ihre vorherige Größe. Pflegezonen, Schaum und Werkzeug passen zur jeweiligen Tiergröße; alle Bereiche der Katze sind ohne Ansichtspfeile erreichbar. Die neue Duschgrafik zeigt den Boden und den Schatten unter der Wanne.
 
 Nach 30 Sekunden endet die Gassirunde mit einer Auslaufphase: Es kommen keine Hindernisse mehr, ein laufender Sprung wird beendet, dann verlassen Ronaldo und Tier gemeinsam rechts das Bild. Erst danach gibt es die Belohnung. Matschpfützen, Felsen, Holzzäune und Äste verwenden transparente Comicgrafiken. Vorschauen im Zuhause bleiben über einem unabhängig scrollbaren Auswahlbereich sichtbar; auch die Fußball-Umkleide hält ihre Figur beim Scrollen fest.
 
