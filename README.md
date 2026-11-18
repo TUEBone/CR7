@@ -286,3 +286,22 @@ mit echten Browser-Zeigergesten geprüft, ohne zusätzliche Mindestzeit.
 
 Gezielter Regressionstest:
 `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/idle-cache-browser-check.cjs`.
+
+## Präzisionsloch und Gartenwege
+
+Die Torwand enthält jetzt ein großes goldumrandetes 100-Punkte-Loch und ein
+kleineres violett umrandetes Präzisionsloch mit 200 Punkten. Dessen Radius beträgt
+68 % des normalen Radius; gewertet wird die tatsächliche präzise Zielposition im
+Kreis. Das normale Loch behält die großzügige 2 × 2-Treffertoleranz. Die Zahl der
+Schüsse, Karriereverbuchung und Trefferfolgen ändern sich nicht.
+
+Der Schrank und der sitzende Ronaldo sind um den Faktor 1,2 vergrößert, jeweils um
+ihren unteren Anker. Der Schrank bleibt ohne sichtbare Schaltflächenumrandung.
+Im Garten ist die Wiese oberhalb/hinter der Beetreihe wieder erreichbar. Bei einem
+Tipp berechnet das ausgewählte Tier einen Weg um die Beete; auch beim Zurücklaufen
+überquert es nicht die Erde. Ein Tipp auf einen nicht begehbaren Rand wird auf die
+nächste freie Grasfläche versetzt. Tiere erscheinen weiter hinten perspektivisch
+kleiner und zeigen weiterhin ihre passenden Bewegungsrichtungen.
+
+Browserprüfung mit echtem 200-Punkte-Schuss und Gartenwegen in beide Richtungen:
+`PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/bonus-garden-browser-check.cjs`.

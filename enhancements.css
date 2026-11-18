@@ -108,3 +108,6 @@ body.home-expanded #stage{max-width:none}
 /* Keep the wardrobe clickable, but remove its old visible button panel. */
 .home-mode .room-wardrobe,.home-mode .room-wardrobe:hover,.home-mode .room-wardrobe:active{background:transparent;border:0;box-shadow:none;text-shadow:none;color:transparent}
 .home-mode .room-wardrobe:focus-visible{outline:2px solid #ffe18a;outline-offset:-2px;background:transparent;color:transparent}
+/* Enlarge the existing sprites around their floor/seated anchor. */
+.home-mode .furniture-wardrobe,.home-mode .room-ronaldo{transform:scale(1.2);transform-origin:50% 100%}
+.home-mode .room-wardrobe{left:0;top:3%;width:33%;height:55%}
