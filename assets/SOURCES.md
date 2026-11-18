@@ -37,3 +37,7 @@ und entfernt die transparenten Ränder beim Laden.
 `home/pet-shower-closeup.png`: anhand des ursprünglichen Duschhintergrunds generierte
 Nahansicht einer großen Duschwanne mit Fliesen, ohne Brause/Schläuche oder sichtbare
 Raumhöhe. Das Bild ist lokal eingebunden und Teil des Offline-Exports.
+
+`home/room-clean.png`: bearbeitete Zimmergrundgrafik ohne das alte gerahmte Trikotbild.
+Der interaktive Trophäenrahmen steht nun vor einer leeren Wand. Fenster, Regal und
+Fußboden behalten ihre bisherigen Positionen; die Vase sitzt auf Höhe der Regaloberseite.
