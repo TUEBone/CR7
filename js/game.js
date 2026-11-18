@@ -449,14 +449,14 @@ class Feeding {
 }
 const CARE_ZONES=[{"id":"forehead","x":72,"y":31,"rx":6,"ry":7},{"id":"ear","x":65,"y":37,"rx":6,"ry":7},{"id":"cheek","x":75,"y":39,"rx":6,"ry":7},{"id":"muzzle","x":82,"y":39,"rx":6,"ry":7},{"id":"chin","x":77,"y":48,"rx":6,"ry":7},{"id":"neck","x":65,"y":52,"rx":6,"ry":7},{"id":"chest","x":64,"y":62,"rx":6,"ry":7},{"id":"shoulder","x":57,"y":57,"rx":6,"ry":7},{"id":"back1","x":45,"y":55,"rx":6,"ry":7},{"id":"back2","x":34,"y":56,"rx":6,"ry":7},{"id":"flank1","x":37,"y":67,"rx":6,"ry":7},{"id":"flank2","x":49,"y":67,"rx":6,"ry":7},{"id":"belly","x":45,"y":73,"rx":6,"ry":7},{"id":"front1","x":75,"y":85,"rx":6,"ry":7},{"id":"front2","x":56,"y":87,"rx":6,"ry":7},{"id":"hind1","x":42,"y":86,"rx":6,"ry":7},{"id":"hind2","x":27,"y":86,"rx":6,"ry":7},{"id":"tail1","x":26,"y":61,"rx":6,"ry":7},{"id":"tail2","x":20,"y":56,"rx":6,"ry":7},{"id":"tail3","x":18,"y":48,"rx":6,"ry":7}];
 const CAT_CARE_ZONES=[{"id":"forehead","x":79,"y":34,"rx":6,"ry":7},{"id":"ear","x":77,"y":25,"rx":6,"ry":7},{"id":"cheek","x":79,"y":43,"rx":6,"ry":7},{"id":"muzzle","x":84,"y":44,"rx":6,"ry":7},{"id":"chin","x":80,"y":51,"rx":6,"ry":7},{"id":"neck","x":73,"y":56,"rx":6,"ry":7},{"id":"chest","x":69,"y":66,"rx":6,"ry":7},{"id":"shoulder","x":63,"y":62,"rx":6,"ry":7},{"id":"back1","x":54,"y":61,"rx":6,"ry":7},{"id":"back2","x":44,"y":61,"rx":6,"ry":7},{"id":"flank1","x":46,"y":69,"rx":6,"ry":7},{"id":"flank2","x":58,"y":69,"rx":6,"ry":7},{"id":"belly","x":55,"y":76,"rx":6,"ry":7},{"id":"front1","x":76,"y":85,"rx":6,"ry":7},{"id":"front2","x":60,"y":89,"rx":6,"ry":7},{"id":"hind1","x":47,"y":87,"rx":6,"ry":7},{"id":"hind2","x":26,"y":88,"rx":6,"ry":7},{"id":"tail1","x":32,"y":52,"rx":6,"ry":7},{"id":"tail2","x":26,"y":40,"rx":6,"ry":7},{"id":"tail3","x":20,"y":33,"rx":6,"ry":7}];
-const CARE_TRANSFORM={scale:.45,cx:50,cy:55,offsetY:-2};
-const CAT_CARE_TRANSFORM={scale:1,cx:50,cy:55,offsetY:-6};
+const CARE_TRANSFORM={scale:.9,cx:50,cy:55,offsetY:-2};
+const CAT_CARE_TRANSFORM={scale:2,cx:50,cy:55,offsetY:-6};
 const careTransform=pet=>pet==='cat'?CAT_CARE_TRANSFORM:CARE_TRANSFORM;
 function carePoint(p,pet='dog'){const t=careTransform(pet);return {x:t.cx+(p.x-t.cx)*t.scale,y:t.cy+(p.y-t.cy)*t.scale+t.offsetY};}
 for(const [pet,zones] of [['dog',CARE_ZONES],['cat',CAT_CARE_ZONES]])for(const z of zones){const t=careTransform(pet),p=carePoint(z,pet);z.x=p.x;z.y=p.y;z.rx*=t.scale;z.ry*=t.scale;}
 const CARE_STAGES=['soap','rinse','brush','dry'];
 class PetCare {
- constructor(pet){this.pet=pet;this.zones=pet==='cat'?CAT_CARE_ZONES:CARE_ZONES;this.stage='soap';this.visited=new Set();this.rinseSeconds=0;this.dryingTool='towel';this.done=false;this.claimed=false;}
+ constructor(pet){this.pet=pet;this.zones=pet==='cat'?CAT_CARE_ZONES:CARE_ZONES;this.pan={x:pet==='cat'?-20:0,y:0};this.stage='soap';this.visited=new Set();this.rinseSeconds=0;this.dryingTool='towel';this.done=false;this.claimed=false;}
  stroke(from,to,dt=0){
   if(this.done||Math.hypot(to.x-from.x,to.y-from.y)<.2)return;
   const steps=Math.min(200,Math.max(1,Math.ceil(Math.hypot(to.x-from.x,to.y-from.y))));let touched=false;
@@ -465,30 +465,32 @@ class PetCare {
   }
   if(touched&&this.stage==='rinse')this.rinseSeconds=Math.min(10,this.rinseSeconds+Math.max(0,Math.min(.12,dt)));
  }
+ panBy(dx,dy){const z=this.zones;this.pan.x=clamp(this.pan.x+dx,Math.min(0,85-Math.max(...z.map(p=>p.x))),Math.max(0,15-Math.min(...z.map(p=>p.x))));this.pan.y=clamp(this.pan.y+dy,Math.min(0,85-Math.max(...z.map(p=>p.y))),Math.max(0,15-Math.min(...z.map(p=>p.y))));}
  get ready(){return this.visited.size===this.zones.length;}
  next(){if(!this.ready||this.done)return false;const next=CARE_STAGES.indexOf(this.stage)+1;if(next===4)this.done=true;else{this.stage=CARE_STAGES[next];this.visited.clear();}return true;}
  claim(h){if(!this.done||this.claimed)return false;this.claimed=true;awardHome(h,60);h.stats.care++;return true;}
 }
 function petJumpPose(w){
  if(w.y<0){const p=clamp((w.vy+760)/1520,0,1);return {frame:p<.25?1:p<.7?2:3,sx:1-.08*Math.sin(p*Math.PI),sy:1+.08*Math.sin(p*Math.PI),angle:-.13*Math.cos(p*Math.PI)};}
- const landing=clamp(1-(w.landingAge??1)/.18,0,1);return {frame:landing?3:Math.floor(w.elapsed*8)%4,sx:1+.12*landing,sy:1-.14*landing,angle:0};
+ const landing=clamp(1-(w.landingAge??1)/.18,0,1);return {frame:landing?3:Math.floor((w.animationTime??w.elapsed)*8)%4,sx:1+.12*landing,sy:1-.14*landing,angle:0};
 }
 class PetWalk {
- constructor(random=Math.random){Object.assign(this,{random,elapsed:0,y:0,vy:0,duck:false,lives:3,passed:0,obstacles:[],timer:1,done:false,failed:false,claimed:false,invincible:0,landingAge:1});}
- jump(){if(!this.done&&!this.failed&&this.y===0){this.vy=-760;this.duck=false;}}
+ constructor(random=Math.random){Object.assign(this,{random,elapsed:0,y:0,vy:0,duck:false,lives:3,passed:0,obstacles:[],timer:1,done:false,failed:false,claimed:false,invincible:0,landingAge:1,animationTime:0,exitOffset:0,phase:'running'});}
+ jump(){if(!this.done&&!this.failed&&this.phase==='running'&&this.y===0){this.vy=-760;this.duck=false;}}
  update(dt){
   if(this.done||this.failed)return;
-  this.elapsed=Math.min(30,this.elapsed+dt);this.invincible=Math.max(0,this.invincible-dt);
+  this.animationTime+=dt;this.elapsed=Math.min(30,this.elapsed+dt);if(this.elapsed===30&&this.phase==='running'){this.phase='landing';this.duck=false;this.obstacles=[];}this.invincible=Math.max(0,this.invincible-dt);
   this.landingAge+=dt;const wasAirborne=this.y<0;this.vy+=1150*dt;this.y+=this.vy*dt;if(this.y>=0){if(wasAirborne)this.landingAge=0;this.y=0;this.vy=0;}
+  if(this.phase!=='running'){if(this.y===0){this.phase='exiting';this.exitOffset+=240*dt;if(105+this.exitOffset>(this.viewportWidth||480)+100){this.done=true;this.phase='done';}}return;}
   this.timer-=dt;
-  if(this.timer<=0){const types=['puddle','hole','fence','branch'];this.obstacles.push({x:(this.viewportWidth||480)+55,type:types[Math.floor(this.random()*types.length)],checked:false});this.timer+=1.9+this.random()*.65;}
+  if(this.timer<=0){const types=['puddle','rock','fence','branch'];this.obstacles.push({x:(this.viewportWidth||480)+55,type:types[Math.floor(this.random()*types.length)],checked:false});this.timer+=1.9+this.random()*.65;}
   for(const o of this.obstacles){o.x-=185*Math.max(1,((this.viewportWidth||480)-105)/375)*dt;
-   const half={hole:34,puddle:36,fence:27,branch:35}[o.type];
+   const half={rock:34,hole:34,puddle:36,fence:27,branch:35}[o.type];
    if(!o.checked){
     let hit=false;
     for(const actor of [{x:105,half:13,factor:1},{x:105,half:20,factor:.7}]){
      if(o.x+half<actor.x-actor.half||o.x-half>actor.x+actor.half)continue;
-     const safe=o.type==='branch'?this.duck&&this.y===0:o.type==='fence'?this.y*actor.factor<=-68:this.y*actor.factor<=-8;
+     const safe=o.type==='branch'?this.duck&&this.y===0:o.type==='fence'?this.y*actor.factor<=-68:o.type==='rock'?this.y*actor.factor<=-48:this.y*actor.factor<=-8;
      if(!safe)hit=true;
     }
     if(hit&&!o.hit){o.hit=true;if(!this.invincible){this.lives--;this.invincible=.7;if(this.lives===0)this.failed=true;}}
@@ -496,7 +498,7 @@ class PetWalk {
    }
   }
   this.obstacles=this.obstacles.filter(o=>o.x>-90);
-  if(this.elapsed===30&&!this.failed)this.done=true;
+
  }
  claim(h,pet='dog'){if((!this.done&&!this.failed)||this.claimed)return 0;this.claimed=true;const coins=(this.done?50:10)+this.passed*2;awardHome(h,coins);h.stats.walks++;h.stats.bestWalk=Math.max(h.stats.bestWalk,this.passed);h.pets[pet].satiety=Math.max(0,h.pets[pet].satiety-5);return coins;}
 }
@@ -1254,7 +1256,7 @@ class HomeController {
    const c=this.care,stageNames={soap:'1 · Einschäumen',rinse:'2 · Abspülen',brush:'3 · Bürsten',dry:'4 · Trocknen'};
    content=c.done?`<div class="home-care-complete"><canvas id="happy-pet" width="384" height="256"></canvas><h3>Sauber und glücklich!</h3><p class="home-reward">+60 Wohnmünzen verdient.</p></div><button data-ha="care">Noch eine Pflegerunde</button><button data-ha="room">Zurück ins Zimmer</button>`:`${this.petTabs()}<h3>${stageNames[c.stage]}</h3><p>Streiche gründlich über das ganze Tier – auch über jedes Bein, den Kopf und den Schwanz.</p>${c.stage==='dry'?`<div class="home-pet-tabs"><button data-ha="dry-tool" data-id="towel" aria-pressed="${c.dryingTool==='towel'}">Handtuch</button><button data-ha="dry-tool" data-id="dryer" aria-pressed="${c.dryingTool==='dryer'}">Föhn</button></div>`:''}<div id="care-stage" class="care-stage" data-stage="${c.stage}" style="--tool:'${{soap:'🧽',rinse:'🚿',brush:'🪮',dry:c.dryingTool==='dryer'?'💨':'🧺'}[c.stage]}'"><canvas width="480" height="330"></canvas><div class="care-bubbles" aria-hidden="true"></div><span class="care-tool" id="care-tool"></span></div><p id="care-progress" role="status"></p><button data-ha="care-next" id="care-next" class="primary" disabled>${c.stage==='dry'?'Pflege abschließen · 60 Münzen':'Weiter zum nächsten Schritt'}</button><button data-ha="room">Pflege abbrechen · Zimmer</button>`;
   }
-  if(this.scene==='walk')content=`<p>${PET_NAMES[this.pet]} ist dabei. 30 Sekunden überstehen: Pfützen, Löcher und Zäune überspringen, unter Ästen ducken.</p><div class="walk-hud"><span id="walk-time"></span><span id="walk-lives"></span><span id="walk-score"></span></div><canvas id="walk-canvas" class="walk-canvas" width="480" height="430" aria-label="Gassirunde mit Hindernissen"></canvas><div class="walk-controls"><button data-ha="jump">↑ Springen</button><button data-ha="duck" id="duck-control">↓ Ducken halten</button></div><button data-ha="walk-pause" id="walk-pause">Pause</button><p id="walk-result" class="home-reward" role="status"></p><button data-ha="walk" id="walk-again" hidden>Noch eine Gassirunde</button><button data-ha="room">Gassi abbrechen · Zimmer</button>`;
+  if(this.scene==='walk')content=`<p>${PET_NAMES[this.pet]} ist dabei. 30 Sekunden überstehen: Matschpfützen, Felsen und Zäune überspringen, unter Ästen ducken.</p><div class="walk-hud"><span id="walk-time"></span><span id="walk-lives"></span><span id="walk-score"></span></div><canvas id="walk-canvas" class="walk-canvas" width="480" height="430" aria-label="Gassirunde mit Hindernissen"></canvas><div class="walk-controls"><button data-ha="jump">↑ Springen</button><button data-ha="duck" id="duck-control">↓ Ducken halten</button></div><button data-ha="walk-pause" id="walk-pause">Pause</button><p id="walk-result" class="home-reward" role="status"></p><button data-ha="walk" id="walk-again" hidden>Noch eine Gassirunde</button><button data-ha="room">Gassi abbrechen · Zimmer</button>`;
   if(this.scene==='garden')content=this.gardenBody();
   if(this.scene==='beds')content=this.bedsBody();
   if(this.scene==='furniture')content=this.furnitureBody();
@@ -1298,7 +1300,7 @@ class HomeController {
  giveFood(){try{if(this.feeding.give(this.state,this.food)){this.save();this.message=this.feeding.done?'Fütterungsrunde geschafft! +20 Wohnmünzen.':'Lecker!';this.render();}}catch(e){this.message=e.message;this.root.querySelector('#home-message').textContent=this.message;}}
  movePets(e,room){const box=room.getBoundingClientRect(),x=(e.clientX-box.left)/box.width*100,y=(e.clientY-box.top)/box.height*100;if(y<51)return;const p=this.pets[this.pet];p.tx=clampHome(x,12,88);p.ty=clampHome(y,62,91);}
 
- point(e,node){const r=node.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};}
+ point(e,node){const r=node.getBoundingClientRect();const pan=node.id==='care-stage'?this.care.pan:{x:0,y:0};return {x:(e.clientX-r.left)/r.width*100-pan.x,y:(e.clientY-r.top)/r.height*100-pan.y};}
  onPointerDown(e){
   const care=e.target.closest('#care-stage'),food=e.target.closest('[data-food]'),duck=e.target.closest('#duck-control');
   if(care){e.preventDefault();care.setPointerCapture(e.pointerId);this.pointer={kind:'care',point:this.point(e,care),at:performance.now(),node:care};}
@@ -1308,7 +1310,7 @@ class HomeController {
  onPointerMove(e){
   if(!this.pointer)return;
   if(this.pointer.kind==='food'){this.pointer.moved ||= Math.hypot(e.clientX-this.pointer.x,e.clientY-this.pointer.y)>8;this.positionGhost(e);}
-  if(this.pointer.kind==='care'){const point=this.point(e,this.pointer.node),now=performance.now();this.care.stroke(this.pointer.point,point,(now-this.pointer.at)/1000);this.care.foam??=[];if(point.x>=5&&point.x<=92&&point.y>=20&&point.y<=92){if(this.care.stage==='soap'&&Math.hypot(point.x-this.pointer.point.x,point.y-this.pointer.point.y)>.5){this.care.foam.push(point);if(this.care.foam.length>120)this.care.foam.shift();}if(this.care.stage==='rinse')this.care.foam=this.care.foam.filter(f=>Math.hypot(f.x-point.x,f.y-point.y)>10);}this.pointer.point=point;this.pointer.at=now;const tool=this.root.querySelector('#care-tool');tool.style.left=point.x+'%';tool.style.top=point.y+'%';tool.classList.add('active');this.updateCare();}
+  if(this.pointer.kind==='care'){const point=this.point(e,this.pointer.node),now=performance.now();this.care.stroke(this.pointer.point,point,(now-this.pointer.at)/1000);this.care.foam??=[];if(this.care.zones.some(z=>((point.x-z.x)/z.rx)**2+((point.y-z.y)/z.ry)**2<2)){if(this.care.stage==='soap'&&Math.hypot(point.x-this.pointer.point.x,point.y-this.pointer.point.y)>.5){this.care.foam.push(point);if(this.care.foam.length>120)this.care.foam.shift();}if(this.care.stage==='rinse')this.care.foam=this.care.foam.filter(f=>Math.hypot(f.x-point.x,f.y-point.y)>10);}this.pointer.point=point;this.pointer.at=now;const tool=this.root.querySelector('#care-tool');tool.style.left=(point.x+this.care.pan.x)+'%';tool.style.top=(point.y+this.care.pan.y)+'%';tool.classList.add('active');this.updateCare();}
  }
  positionGhost(e){if(this.ghost){this.ghost.style.left=e.clientX+'px';this.ghost.style.top=e.clientY+'px';}}
  onPointerUp(e){
@@ -1316,7 +1318,7 @@ class HomeController {
   this.cancelPointer();
  }
  cancelPointer(){if(this.pointer?.kind==='duck'&&this.walk)this.walk.duck=false;this.pointer=null;this.ghost?.remove();this.ghost=null;this.root.querySelector('#care-tool')?.classList.remove('active');}
- updateCare(){if(!this.care||this.scene!=='care'||this.care.done)return;const bubbles=this.root.querySelector('.care-bubbles');if(bubbles)bubbles.innerHTML=(this.care.foam||[]).map(f=>`<i style="left:${f.x}%;top:${f.y}%">☁</i>`).join('');const status=this.root.querySelector('#care-progress');if(status)status.textContent=`${Math.round(this.care.visited.size/this.care.zones.length*100)} % gepflegt`;const b=this.root.querySelector('#care-next');if(b)b.disabled=!this.care.ready;}
+ updateCare(){if(!this.care||this.scene!=='care'||this.care.done)return;const bubbles=this.root.querySelector('.care-bubbles');if(bubbles)bubbles.innerHTML=(this.care.foam||[]).map(f=>`<i style="left:${f.x+this.care.pan.x}%;top:${f.y+this.care.pan.y}%">☁</i>`).join('');const status=this.root.querySelector('#care-progress');if(status)status.textContent=`${Math.round(this.care.visited.size/this.care.zones.length*100)} % gepflegt`;const b=this.root.querySelector('#care-next');if(b)b.disabled=!this.care.ready;}
 
  avatarSheet(){const e=this.state.equipped,key=JSON.stringify(e);if(this.avatarCache.has(key))return this.avatarCache.get(key);const src=this.assets[`casual-${e.top}.png`],canvas=document.createElement('canvas');canvas.width=src.width;canvas.height=src.height;const c=canvas.getContext('2d');c.drawImage(src,0,0);const image=c.getImageData(0,0,canvas.width,canvas.height),a=image.data,meta=HOME_META[e.top];
   const pants=HOME_ITEMS.find(i=>i.id===e.bottom).color,shoes=HOME_ITEMS.find(i=>i.id===e.shoes).color;
@@ -1333,7 +1335,7 @@ class HomeController {
 
  drawAvatar(canvas,frame=0){if(!canvas)return;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const sheet=this.avatarSheet(),e=this.state.equipped,m=HOME_META[e.top][frame],s=canvas.width/384;c.save();c.scale(s,s);c.drawImage(sheet,frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,m,e,1);c.restore();}
  drawAccessories(c,m,e,scale=1){const head=m.head;if(e.head!=='head-none'){const hat=this.assets[e.head+'.png'],w=head.width*(e.head==='hat'?1.9:1.65),h=w*hat.height/hat.width;c.drawImage(hat,head.x-w/2,head.y-h*.78,w,h);}if(e.eyes==='glasses'){const glasses=this.assets['glasses.png'],w=head.width*.86,h=w*glasses.height/glasses.width;c.drawImage(glasses,head.x-w/2,head.eye-h*.5-1,w,h);}}
- drawPet(canvas,pet,frame){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const size=Math.min(canvas.width,canvas.height*1.2);c.save();if(canvas.closest('.care-stage')){const t=careTransform(pet);c.translate(canvas.width*t.cx/100,canvas.height*(t.cy+t.offsetY)/100);c.scale(t.scale,t.scale);c.translate(-canvas.width*t.cx/100,-canvas.height*t.cy/100);}c.drawImage(this.assets[pet+'.png'],frame*256,0,256,256,(canvas.width-size)/2,(canvas.height-size)/2,size,size);c.restore();}
+ drawPet(canvas,pet,frame){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);const size=Math.min(canvas.width,canvas.height*1.2);c.save();if(canvas.closest('.care-stage')){const t=careTransform(pet);c.translate(canvas.width*this.care.pan.x/100,canvas.height*this.care.pan.y/100);c.translate(canvas.width*t.cx/100,canvas.height*(t.cy+t.offsetY)/100);c.scale(t.scale,t.scale);c.translate(-canvas.width*t.cx/100,-canvas.height*t.cy/100);}c.drawImage(this.assets[pet+'.png'],frame*256,0,256,256,(canvas.width-size)/2,(canvas.height-size)/2,size,size);c.restore();}
  frame(stamp){if(this.dead)return;const dt=Math.min(.05,Math.max(0,(stamp-this.last)/1000));this.last=stamp;if(!document.hidden&&document.hasFocus()){
   this.elapsed+=dt;
   if(this.scene==='room'||this.scene==='garden')this.frameRoom(dt);
@@ -1350,7 +1352,7 @@ class HomeController {
    const cv=node.querySelector('canvas');cv.style.transform=dx<0?'scaleX(-1)':'';this.drawPet(cv,pet,moving?Math.floor(this.elapsed*8)%4:4+Math.floor(this.elapsed*(p.happy?7:3))%4);
   }
  }
- updateWalkHUD(){if(this.scene!=='walk')return;const w=this.walk;const t=this.root.querySelector('#walk-time');if(!t)return;t.textContent=`${Math.ceil(30-w.elapsed)} s`;this.root.querySelector('#walk-lives').textContent='♥'.repeat(Math.max(0,w.lives));this.root.querySelector('#walk-score').textContent=`${w.passed} Hindernisse`;this.root.querySelector('#walk-pause').textContent=this.walkPaused?'Fortsetzen':'Pause';this.root.querySelector('#walk-result').textContent=w.claimed?`${w.done?'Runde geschafft!':'Nächster Versuch!'} +${this.walkReward} Wohnmünzen.`:this.walkPaused?'Pausiert – mit „Fortsetzen“ geht’s weiter.':'';this.root.querySelector('#walk-again').hidden=!w.claimed;}
+ updateWalkHUD(){if(this.scene!=='walk')return;const w=this.walk;const t=this.root.querySelector('#walk-time');if(!t)return;t.textContent=w.phase==='running'?`${Math.ceil(30-w.elapsed)} s`:'Nach Hause …';this.root.querySelectorAll('[data-ha=jump],[data-ha=duck]').forEach(b=>b.disabled=w.phase!=='running');this.root.querySelector('#walk-lives').textContent='♥'.repeat(Math.max(0,w.lives));this.root.querySelector('#walk-score').textContent=`${w.passed} Hindernisse`;this.root.querySelector('#walk-pause').textContent=this.walkPaused?'Fortsetzen':'Pause';this.root.querySelector('#walk-result').textContent=w.claimed?`${w.done?'Runde geschafft!':'Nächster Versuch!'} +${this.walkReward} Wohnmünzen.`:this.walkPaused?'Pausiert – mit „Fortsetzen“ geht’s weiter.':'';this.root.querySelector('#walk-again').hidden=!w.claimed;}
  drawWalk(){
   const cv=this.root.querySelector('#walk-canvas');if(!cv)return;const c=cv.getContext('2d'),w=this.walk;
   c.fillStyle='#c8efff';c.fillRect(0,0,480,430);c.fillStyle='#fff7c2';c.beginPath();c.arc(408,43,24,0,7);c.fill();
@@ -1363,10 +1365,10 @@ class HomeController {
    if(o.type==='fence'){c.fillStyle='#b87947';c.fillRect(o.x-21,163,8,68);c.fillRect(o.x+16,163,8,68);c.fillRect(o.x-25,177,53,8);c.fillRect(o.x-25,200,53,8);}
    if(o.type==='branch'){c.fillStyle='#98623b';c.fillRect(o.x+24,82,10,148);c.fillRect(o.x-35,139,68,11);c.fillStyle='#438f4b';c.beginPath();c.ellipse(o.x+28,95,43,28,0,0,7);c.fill();}
   }
-  const frame=w.duck&&w.y===0?2:w.y<0?3:4+Math.floor(w.elapsed*10)%8;
+  const frame=w.duck&&w.y===0?2:w.y<0?3:4+Math.floor(w.animationTime*10)%8;
   c.save();if(w.invincible>0)c.globalAlpha=Math.floor(w.elapsed*12)%2?.45:1;
   const scale=.42;c.translate(105-192*scale,230+w.y-364*scale);c.scale(scale,scale);c.drawImage(this.avatarSheet(),frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,HOME_META[this.state.equipped.top][frame],this.state.equipped);c.restore();
-  const pf=w.y<0?1:Math.floor(w.elapsed*8)%4;c.drawImage(this.assets[this.pet+'.png'],pf*256,0,256,256,132,230+w.y*.7-64,78,78);c.restore();
+  const pf=w.y<0?1:Math.floor((w.animationTime??w.elapsed)*8)%4;c.drawImage(this.assets[this.pet+'.png'],pf*256,0,256,256,132,230+w.y*.7-64,78,78);c.restore();
  }
 }
 
@@ -1846,7 +1848,7 @@ Renderer.prototype.penalty=function(m,t,won){
 
 // Home: keep original furniture silhouettes and add five materials per model.
 const baseLoadHome=loadHomeAssets;
-loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.furnitureReady){for(const [key,path] of [['directions','../assets/pets/directions.png'],['walkPoses','../assets/home/walk-poses.png'],['park','../assets/home/park.png'],['wardrobes','../assets/home/wardrobes.png'],['gardenBeds','../assets/home/garden-beds.png'],['decor','../assets/home/decor.png'],['showerCloseup','../assets/home/pet-shower-closeup.png'],['roomClean','../assets/home/room-clean.png']]){const im=new Image();im.src=new URL(path,import.meta.url).href;await im.decode();assets[key]=im;}
+loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.furnitureReady){for(const [key,path] of [['directions','../assets/pets/directions.png'],['walkPoses','../assets/home/walk-poses.png'],['park','../assets/home/park.png'],['walkObstacles','../assets/home/walk-obstacles.png'],['groundedShower','../assets/home/pet-shower-grounded.png'],['wardrobes','../assets/home/wardrobes.png'],['gardenBeds','../assets/home/garden-beds.png'],['decor','../assets/home/decor.png'],['showerCloseup','../assets/home/pet-shower-closeup.png'],['roomClean','../assets/home/room-clean.png']]){const im=new Image();im.src=new URL(path,import.meta.url).href;await im.decode();assets[key]=im;}
  const originals={};for(const f of FURNITURE.filter(f=>!f.base))originals[f.id]=assets[f.id+'.png'];
  const atlas=assets.wardrobes,edges=[0,460,880,1270,1650,2172];
  for(const f of FURNITURE.filter(f=>FURNITURE_MODELS[f.slot])){
@@ -1856,8 +1858,9 @@ loadHomeAssets=async function(){const assets=await baseLoadHome();if(!assets.fur
   const image=c.getImageData(0,0,cv.width,cv.height);image.data.set(recolorFurniturePixels(image.data,FURNITURE_COLORS[f.slot][f.color][1]));c.putImageData(image,0,0);
   const im=new Image();im.src=cv.toDataURL();await im.decode();assets[f.id+'.png']=im;
  }
- assets['garden.png']=assets.gardenBeds;assets['bathroom.png']=assets.showerCloseup;assets['room-base.png']=assets.roomClean;
+ assets['garden.png']=assets.gardenBeds;assets['bathroom.png']=assets.groundedShower;assets['room-base.png']=assets.roomClean;
  for(const [key,index] of [['recordPlayer',0],['flowerVase',1]]){const atlas=assets.decor,cv=document.createElement('canvas');cv.width=atlas.width/2;cv.height=atlas.height;const c=cv.getContext('2d');c.drawImage(atlas,index*atlas.width/2,0,atlas.width/2,atlas.height,0,0,cv.width,cv.height);const pixels=c.getImageData(0,0,cv.width,cv.height).data;let x0=cv.width,y0=cv.height,x1=0,y1=0;for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++)if(pixels[(y*cv.width+x)*4+3]>10){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}const trim=document.createElement('canvas');trim.width=x1-x0+1;trim.height=y1-y0+1;trim.getContext('2d').drawImage(cv,x0,y0,trim.width,trim.height,0,0,trim.width,trim.height);const im=new Image();im.src=trim.toDataURL();await im.decode();assets[key]=im;}
+ assets.obstacleSprites={};for(const [key,index] of [['puddle',0],['rock',1],['fence',2],['branch',3]]){const im=assets.walkObstacles,cw=im.width/2,ch=im.height/2,cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');c.drawImage(im,(index%2)*cw,Math.floor(index/2)*ch,cw,ch,0,0,cw,ch);const a=c.getImageData(0,0,cw,ch).data;let x0=cw,y0=ch,x1=0,y1=0;for(let y=0;y<ch;y++)for(let x=0;x<cw;x++)if(a[(y*cw+x)*4+3]>100){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}assets.obstacleSprites[key]={image:cv,x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};}
  assets.furnitureReady=true;
  }
  return assets;};
@@ -1930,26 +1933,47 @@ draw=function(stamp){oldDraw(stamp);if(mode==='headers'&&view==='play'&&!ended){
 const oldWalkDraw=HomeController.prototype.drawWalk;
 HomeController.prototype.drawWalk=function(){
  const cv=this.root.querySelector('#walk-canvas');if(!cv)return;const w=this.walk,worldWidth=Math.max(480,cv.clientWidth/Math.max(1,cv.clientHeight)*430),ratio=Math.min(devicePixelRatio||1,2);if(cv.width!==Math.round(worldWidth*ratio)||cv.height!==430*ratio){cv.width=Math.round(worldWidth*ratio);cv.height=430*ratio;}const c=cv.getContext('2d');c.setTransform(ratio,0,0,ratio,0,0);w.viewportWidth=worldWidth;
- const park=this.assets.park,offset=(w.elapsed*30)%860;
+ const park=this.assets.park,offset=(w.animationTime*30)%860;
  c.clearRect(0,0,worldWidth,430);for(let x=-offset;x<worldWidth;x+=860)c.drawImage(park,x,0,860,430);
- // Keep collision plane and visible feet aligned at y=360.
- for(const o of w.obstacles){
-  if(o.type==='puddle'||o.type==='hole'){c.fillStyle=o.type==='hole'?'#29372d':'#67bbd4';c.strokeStyle='#9d7d50';c.lineWidth=4;c.beginPath();c.ellipse(o.x,360,o.type==='hole'?34:36,10,0,0,7);c.fill();c.stroke();}
-  if(o.type==='fence'){c.fillStyle='#b87943';c.strokeStyle='#694d34';for(const dx of [-21,16]){c.fillRect(o.x+dx,292,8,68);c.strokeRect(o.x+dx,292,8,68);}for(const y of [307,330]){c.fillRect(o.x-25,y,53,8);c.strokeRect(o.x-25,y,53,8);}}
-  if(o.type==='branch'){c.fillStyle='#805334';c.fillRect(o.x+24,212,10,148);c.fillRect(o.x-35,269,68,11);c.fillStyle='#417c3b';c.beginPath();c.ellipse(o.x+28,220,43,28,0,0,7);c.fill();}
- }
+ for(const o of w.obstacles){const key=o.type==='hole'?'rock':o.type,sp=this.assets.obstacleSprites[key];const dims={puddle:[80,22],rock:[72,65],fence:[64,74],branch:[100,150]}[key];c.drawImage(sp.image,sp.x,sp.y,sp.w,sp.h,o.x-dims[0]/2,363-dims[1],dims[0],dims[1]);}
+ c.save();c.translate(w.exitOffset,0);
  c.save();if(w.invincible>0)c.globalAlpha=Math.floor(w.elapsed*12)%2?.45:1;
  if(w.y<0||w.duck){const im=this.assets.walkPoses,row={tee:0,jacket:1,vest:2}[this.state.equipped.top],col=w.y<0?0:1,cellW=im.width/2,cellH=im.height/3;
   // Atlas has generous margins; measured opaque figure bounds per column.
   const bounds=col===0?{x:.39,y:0,w:.23,h:.98}:{x:.08,y:.28,w:.61,h:.69};
   const sw=cellW*bounds.w,sh=cellH*bounds.h,height=col===0?174:104,width=height*sw/sh;
   c.drawImage(im,col*cellW+bounds.x*cellW,row*cellH+bounds.y*cellH,sw,sh,105-width*.45,360+w.y-height,width,height);
- }else{const frame=4+Math.floor(w.elapsed*10)%8,scale=.42;c.save();c.translate(105-192*scale,360-364*scale);c.scale(scale,scale);c.drawImage(this.avatarSheet(),frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,HOME_META[this.state.equipped.top][frame],this.state.equipped);c.restore();}
+ }else{const frame=4+Math.floor(w.animationTime*10)%8,scale=.42;c.save();c.translate(105-192*scale,360-364*scale);c.scale(scale,scale);c.drawImage(this.avatarSheet(),frame*384,0,384,384,0,0,384,384);this.drawAccessories(c,HOME_META[this.state.equipped.top][frame],this.state.equipped);c.restore();}
  c.restore();
  // Pet shares the jump plane, drawn slightly in front of Ronaldo.
- const petPose=petJumpPose(w);c.save();c.translate(105,360+w.y*.7);c.rotate(petPose.angle);c.scale(petPose.sx,petPose.sy);c.drawImage(this.assets[this.pet+'.png'],petPose.frame*256,0,256,256,-39,-69,78,78);c.restore();
+ const petPose=petJumpPose(w);c.save();c.translate(105,360+w.y*.7);c.rotate(petPose.angle);c.scale(petPose.sx,petPose.sy);c.drawImage(this.assets[this.pet+'.png'],petPose.frame*256,0,256,256,-39,-69,78,78);c.restore();c.restore();
 };
 
+
+// Keep previews visible while choosing items or reaching lower controls.
+const renderBeforePinned=HomeController.prototype.render;
+HomeController.prototype.render=function(){
+ const previous=this.root.querySelector('.home-scroll-options')?.scrollTop||0,same=this.pinnedScene===this.scene;
+ renderBeforePinned.call(this);this.pinnedScene=this.scene;this.root.classList.remove('pinned-home');
+ if(this.scene==='walk')return;
+ let visual=this.root.querySelector('#home-room,.home-closet-preview,#feeding-pet,#care-stage,.home-care-complete,.cleanup-stage');
+ if(!visual&&['furniture','music','pictures','beds'].includes(this.scene)){
+  visual=document.createElement('div');visual.className='home-shop-preview';
+  let src,alt;
+  if(this.scene==='furniture'){const f=this.state.estate.equipped[this.furnitureSlot||'sofa'];src=this.assets[f+'.png']?.src;alt='Aktuelle Einrichtung';}
+  if(this.scene==='music'){src=this.assets.recordPlayer.src;alt='Schallplattenspieler';}
+  if(this.scene==='pictures'){const i=this.state.estate.picture;if(i>=0){src=CAREER_STICKERS[i];alt='Dein Bild';}}
+  if(this.scene==='beds'){src=this.assets['garden.png'].src;alt='Dein Garten';}
+  if(src)visual.innerHTML=`<img src="${src}" alt="${alt}">`;else visual=null;
+ }
+ if(!visual)return;
+ const top=document.createElement('div');top.className='home-fixed-preview';const heading=this.root.querySelector('.home-heading');if(heading)top.append(heading);top.append(visual);
+ if(this.scene==='care'&&!this.care.done&&this.pet==='cat'){
+  const camera=document.createElement('div');camera.className='care-camera';camera.setAttribute('aria-label','Ansicht verschieben');
+  for(const [label,dx,dy] of [['←',15,0],['↑',0,15],['↓',0,-15],['→',-15,0]]){const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-label','Ansicht '+label);b.onclick=()=>{this.cancelPointer();this.care.panBy(dx,dy);this.drawPet(visual.querySelector('canvas'),this.pet,0);this.updateCare();};camera.append(b);}top.append(camera);
+ }
+ const scroll=document.createElement('div');scroll.className='home-scroll-options';while(this.root.firstChild)scroll.append(this.root.firstChild);this.root.append(top,scroll);this.root.classList.add('pinned-home');if(same)scroll.scrollTop=previous;
+};
 
 // One optional reward overlay per completed round; scoring is already persisted.
 function qualifiesForVictory(mode,model,finish){

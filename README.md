@@ -305,3 +305,11 @@ kleiner und zeigen weiterhin ihre passenden Bewegungsrichtungen.
 
 Browserprüfung mit echtem 200-Punkte-Schuss und Gartenwegen in beide Richtungen:
 `PLAYWRIGHT_PATH=/tmp/cr7-browser/node_modules/playwright node scripts/bonus-garden-browser-check.cjs`.
+
+### Pflege, Gassirunde und feste Vorschauen (18. November 2026)
+
+Hund und Katze sind beim Waschen gegenüber der vorherigen Version doppelt so groß. Pflegezonen, Schaum und Werkzeug folgen derselben Vergrößerung. Bei der Katze verschieben vier Ansichtspfeile den Ausschnitt, damit alle Körperbereiche erreichbar bleiben. Die neue Duschgrafik zeigt den Boden und den Schatten unter der Wanne.
+
+Nach 30 Sekunden endet die Gassirunde mit einer Auslaufphase: Es kommen keine Hindernisse mehr, ein laufender Sprung wird beendet, dann verlassen Ronaldo und Tier gemeinsam rechts das Bild. Erst danach gibt es die Belohnung. Matschpfützen, Felsen, Holzzäune und Äste verwenden transparente Comicgrafiken. Vorschauen im Zuhause bleiben über einem unabhängig scrollbaren Auswahlbereich sichtbar; auch die Fußball-Umkleide hält ihre Figur beim Scrollen fest.
+
+Prüfung: `npm test` (37 Tests) und `PLAYWRIGHT_PATH=/pfad/zu/playwright node scripts/walk-care-browser-check.cjs` (mobile Vorschauen, vier Pflegestufen mit echten Zeigerbewegungen, Auslaufen und Grafikdarstellung).

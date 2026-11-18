@@ -41,3 +41,6 @@ Raumhöhe. Das Bild ist lokal eingebunden und Teil des Offline-Exports.
 `home/room-clean.png`: bearbeitete Zimmergrundgrafik ohne das alte gerahmte Trikotbild.
 Der interaktive Trophäenrahmen steht nun vor einer leeren Wand. Fenster, Regal und
 Fußboden behalten ihre bisherigen Positionen; die Vase sitzt auf Höhe der Regaloberseite.
+
+- `home/pet-shower-grounded.png`: mit dem Bildgenerator erstellte Überarbeitung der vorhandenen Comicdusche; erhöhte Bodenlinie und sichtbarer Bodenkontakt der Duschwanne (18.11.2026).
+- `home/walk-obstacles.png`: mit dem Bildgenerator erstellter transparenter 2×2-Atlas für Matschpfütze, moosigen Felsen, Holzzaun und belaubten Ast im Comicstil des Parks (18.11.2026). Das Spiel schneidet die vier Zellen zur Laufzeit anhand ihres Alphakanals zu.
