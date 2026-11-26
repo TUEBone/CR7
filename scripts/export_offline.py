@@ -29,7 +29,7 @@ resources.update({f'../{path.relative_to(repo).as_posix()}': data_url(path)
 import json
 source = 'const OFFLINE_ASSETS=' + json.dumps(resources) + ';\n' + source
 source = source.replace('new URL(path,import.meta.url).href', 'OFFLINE_ASSETS[path]')
-html = html.replace('<script type="module" src="./js/game.js"></script>',
+html = html.replace('<script type="module" src="./js/game.js?v=duel-animation"></script>',
                     '<script type="module">\n' + source + '\n</script>')
 html = html.replace('<script src="./home-images-ac3bf84c8921.js"></script>',
                     '<script>\n' + (repo / 'home-images-ac3bf84c8921.js').read_text() + '\n</script>')
