@@ -131,3 +131,160 @@ body.home-expanded #stage{max-width:none}
 .locker-stage{position:sticky;top:0;z-index:5;background:#102a2a}
 @media(max-height:500px){#home-root.pinned-home{--preview-height:31dvh}.home-fixed-preview .home-heading h2{font-size:14px}.home-fixed-preview .home-wallet small,.home-fixed-preview .eyebrow{display:none}.care-camera button{min-height:30px}}
 .home-fixed-preview .cleanup-stage{height:var(--preview-height);min-height:0;width:min(100%,calc(var(--preview-height)*4/3));margin:0;background-size:cover}
+
+/* Coffee table in the foreground of Ronaldo's living room. */
+.room-game-table,
+.room-game-table:hover {
+  position: absolute;
+  left: 34%;
+  top: 65%;
+  z-index: 8;
+  width: 26%;
+  height: 17%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 0 9%;
+  border: 0;
+  background: transparent;
+  color: #452715;
+  isolation: isolate;
+}
+.room-game-table::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 28%;
+  z-index: -1;
+  border: 1px solid #714124;
+  border-radius: 48%;
+  background: repeating-linear-gradient(6deg, #af6d3e, #c78a53 8%, #d49b63 16%);
+  box-shadow: 0 4px #754223, 0 10px 10px #3220184d;
+}
+.room-game-table::after {
+  content: '';
+  position: absolute;
+  inset: 50% 15% 0;
+  z-index: -2;
+  border-inline: 5px solid #744621;
+  border-radius: 25%;
+}
+.room-game-table span {
+  display: inline-block;
+  margin-top: 5%;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: #fff1c9;
+  font-size: clamp(8px, 2.2vw, 13px);
+  line-height: 1.15;
+}
+.room-game-table:hover span { background: #fff8e4; }
+
+#app:has(#home-root[data-scene="memory"]) { max-width: 920px; }
+#stage:has(#home-root[data-scene="memory"]) {
+  max-width: none;
+  height: calc(100dvh - 105px);
+  aspect-ratio: auto;
+  touch-action: pan-y;
+}
+#home-root[data-scene="memory"] { padding: 12px; }
+#home-root[data-scene="memory"] .home-heading { margin-bottom: 6px; }
+#home-root[data-scene="memory"] .home-heading + .tip { display: none; }
+.memory-settings {
+  display: grid;
+  gap: 12px;
+  max-width: 360px;
+  margin: 12px auto;
+}
+.memory-settings label {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  color: #254d39;
+  font-weight: 700;
+}
+.memory-settings select {
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid #8cb09a;
+  border-radius: 8px;
+  color: #234738;
+  background: #f7fff8;
+  font: inherit;
+}
+.memory-settings p { margin: 0; }
+.memory-score {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  color: #163d30;
+  font-size: 14px;
+}
+.memory-score [role="status"] { color: #496455; }
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  gap: 4px;
+  margin: auto;
+  max-width: 790px;
+}
+.memory-card,
+.memory-card:hover {
+  display: grid;
+  place-items: center;
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #719c89;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, #164337, #164337 8px, #194d40 8px, #194d40 16px);
+  color: #ffe193;
+}
+.memory-card:focus-visible { z-index: 1; }
+.memory-card:not([data-face="up"])::after {
+  content: '⚽';
+  font-size: clamp(12px, 4vw, 25px);
+  filter: sepia(.8);
+}
+.memory-card[data-face="up"] {
+  background: var(--motif-color);
+  border-color: #35574a;
+}
+.memory-card[aria-disabled="true"] { cursor: default; }
+.memory-card.matched { box-shadow: inset 0 0 0 2px #2c7651; }
+.memory-motif {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  object-fit: contain;
+  background-repeat: no-repeat;
+  color: #28291b;
+  font-size: clamp(12px, 4vw, 25px);
+  font-weight: 900;
+}
+.memory-caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 1px 2px;
+  color: white;
+  background: #182e29e8;
+  font-size: clamp(7px, 1.65vw, 11px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.memory-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0;
+}
+@media (min-width: 600px) {
+  .memory-board { grid-template-columns: repeat(var(--wide-columns), minmax(0, 1fr)); }
+}

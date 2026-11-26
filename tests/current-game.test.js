@@ -35,3 +35,37 @@ test('garden routes reach grass behind beds without any segment crossing planted
 test('walk timer expires in mid jump, waits for landing, then both actors exit before reward',()=>{const w=new a.PetWalk(()=>.5);w.elapsed=29.98;w.jump();w.update(.01);w.update(.02);assert.equal(w.phase,'landing');assert.ok(w.y<0);assert.equal(w.done,false);const h=a.freshState().home;assert.equal(w.claim(h),0);const vy=w.vy;w.jump();assert.equal(w.vy,vy);for(let i=0;i<3000&&!w.done;i++)w.update(.01);assert.equal(w.y,0);assert.equal(w.phase,'done');assert.ok(105+w.exitOffset>580);assert.equal(w.elapsed,30);assert.ok(w.animationTime>1);assert.equal(w.obstacles.length,0);assert.ok(w.claim(h)>0);assert.equal(w.claim(h),0);});
 test('every cat region fits without panning and strokes complete all care stages',()=>{const c=new a.PetCare('cat');for(let stage=0;stage<4;stage++){for(const z of c.zones){assert.equal(c.pan.x,0);assert.equal(c.pan.y,0);assert.ok(z.x+c.pan.x>=15&&z.x+c.pan.x<=85);assert.ok(z.y-z.ry>=0&&z.y+z.ry<=100);c.stroke({x:z.x-1,y:z.y},{x:z.x+1,y:z.y});}assert.equal(c.ready,true);assert.equal(c.next(),true);}assert.equal(c.done,true);});
 test('audio routing keeps every record at home and uses stadium crowds in football menus',()=>{const start=source.indexOf('function audioScene('),end=source.indexOf('function uploadedAudioURL',start);vm.runInContext(source.slice(start,end)+';globalThis.audioRoute=audioScene;',context);for(const scene of ['room','garden','closet','care','feed','beds','cleanup','music'])for(let track=0;track<11;track++)assert.equal(context.audioRoute('home',scene,track),track<5?'song-'+(track+1):'instrumental');for(const track of [0,4,10])assert.equal(context.audioRoute('home','walk',track),'quiet');for(const view of ['menu','intro','play','pause','result','wardrobe','trophies'])assert.equal(context.audioRoute(view), 'crowd');assert.equal(context.audioRoute('home-loading'),'quiet');});
+
+test('both shot duels alternate Ronaldo and Messi, share aim targets, and score five attempts each', () => {
+  vm.runInContext('globalThis.PenaltyModel = Penalty;', context);
+  for (const Model of [context.PenaltyModel, a.TargetWall]) {
+    const match = new Model(() => .4, true);
+    let previousTargets;
+    for (let i = 0; i < 10; i++) {
+      const shooter = i % 2 ? 'messi' : 'ronaldo';
+      const targets = JSON.stringify(match.wall ? match.holes : [match.directionZones, match.heightZones]);
+      if (i % 2) assert.equal(targets, previousTargets);
+      previousTargets = targets;
+      assert.equal(match.shooter, shooter);
+      const speed = match.wall ? .72 : 1.12;
+      const midpoint = ([lo, hi]) => (lo + hi) / 2;
+      const hole = match.holes?.[1];
+      const direction = i % 2 ? 0 : hole ? (hole.col + 1) / 10 : midpoint(match.directionZones[0]);
+      const height = i % 2 ? 0 : hole ? (hole.row + 1) / 8 : midpoint(match.heightZones[0]);
+      match.phaseTime = (2 - direction) / speed;
+      assert.equal(match.tap(), true);
+      match.phaseTime = (2 - height) / speed;
+      assert.equal(match.tap(), true);
+      assert.equal(match.shooter, shooter);
+      assert.equal(match.result.goal, i % 2 === 0);
+      assert.equal(match.tap(), false);
+      match.update(2.4);
+      assert.equal(match.shooter, shooter);
+      assert.equal(match.complete, i === 9);
+      assert.equal(match.tap(), i < 9);
+    }
+    assert.equal(match.players[0].goals, 5);
+    assert.equal(match.players[0].score, match.wall ? 1000 : 500);
+    assert.equal(match.players[1].score, 0);
+  }
+});

@@ -14,6 +14,8 @@ def data_url(path):
 
 html = (repo / 'index.html').read_text()
 source = (repo / 'js/game.js').read_text()
+memory = (repo / 'js/memory.js').read_text().replace('export ', '')
+source = source.replace('import {MemoryTable, memoryMotifs} from "./memory.js";', memory)
 # Resolve dynamic home-asset paths without an HTTP server.
 resources = {f'../{path.relative_to(repo).as_posix()}': data_url(path)
              for folder in ('assets/home', 'assets/pets', 'assets/audio')
