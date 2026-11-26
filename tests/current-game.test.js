@@ -69,3 +69,24 @@ test('both shot duels alternate Ronaldo and Messi, share aim targets, and score 
     assert.equal(match.players[1].score, 0);
   }
 });
+
+test('Messi shoots in profile and Ronaldo takes over in goal during his penalties', () => {
+  const shotPlayerStart = source.indexOf('  shotPlayer(m, time, won)');
+  const penaltyEnd = source.indexOf('const HOME_META', shotPlayerStart);
+  const helpers = source.slice(source.indexOf('const KEEPER_CONTACT'), source.indexOf('// Procedural instruments'));
+  const rendering = source.slice(shotPlayerStart, penaltyEnd).trimEnd();
+  const Renderer = vm.runInContext(helpers + '\n(class Animations {\n' + rendering + ')', context);
+  const renderer = new Renderer();
+  const sprites = [];
+  for (const name of ['background', 'goal', 'meter', 'text', 'ball', 'confetti']) renderer[name] = () => {};
+  renderer.player = (...args) => sprites.push(args.slice(0, 2));
+  renderer.penalty({shooter:'messi', phase:'direction', flight:0}, 0);
+  assert.deepEqual(sprites.splice(0), [['ronaldo_keeper','idle_front'], ['messi','shoot_side']]);
+  const result = {outcome:'save', x:230, y:208};
+  renderer.penalty({shooter:'messi', phase:'flight', result, flight:.1}, 0);
+  assert.deepEqual(sprites.splice(0), [['ronaldo_keeper','idle_front'], ['messi','run_right_side']]);
+  renderer.penalty({shooter:'messi', phase:'flight', result, flight:1.3}, 0);
+  assert.deepEqual(sprites.splice(0), [['ronaldo_keeper','dive_left'], ['messi','shoot_side']]);
+  renderer.penalty({shooter:'ronaldo', phase:'direction', flight:0}, 0);
+  assert.deepEqual(sprites, [['keeper','idle_front'], ['ronaldo','shoot_side']]);
+});

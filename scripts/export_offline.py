@@ -24,6 +24,8 @@ resources.update({f'../{path}': data_url(repo / path) for path in (
     'assets/sprites/messi/run_front.png', 'assets/messi-run-front-mask.png',
     'assets/memory-photos-1.webp', 'assets/memory-photos-2.webp',
 )})
+resources.update({f'../{path.relative_to(repo).as_posix()}': data_url(path)
+                  for path in (repo / 'assets' / 'sprites').rglob('*.webp')})
 import json
 source = 'const OFFLINE_ASSETS=' + json.dumps(resources) + ';\n' + source
 source = source.replace('new URL(path,import.meta.url).href', 'OFFLINE_ASSETS[path]')
