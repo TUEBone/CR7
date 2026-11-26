@@ -252,21 +252,15 @@ body.home-expanded #stage{max-width:none}
   filter: sepia(.8);
 }
 .memory-card[data-face="up"] {
-  background: var(--motif-color);
+  background: #243f35;
   border-color: #35574a;
 }
 .memory-card[aria-disabled="true"] { cursor: default; }
 .memory-card.matched { box-shadow: inset 0 0 0 2px #2c7651; }
 .memory-motif {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  object-fit: contain;
-  background-repeat: no-repeat;
-  color: #28291b;
-  font-size: clamp(12px, 4vw, 25px);
-  font-weight: 900;
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
 }
 .memory-caption {
   position: absolute;

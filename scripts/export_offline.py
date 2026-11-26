@@ -15,11 +15,15 @@ def data_url(path):
 html = (repo / 'index.html').read_text()
 source = (repo / 'js/game.js').read_text()
 memory = (repo / 'js/memory.js').read_text().replace('export ', '')
-source = source.replace('import {MemoryTable, memoryMotifs} from "./memory.js";', memory)
-# Resolve dynamic home-asset paths without an HTTP server.
+source = source.replace('import {MemoryTable} from "./memory.js";', memory)
+# Resolve local photos, sprites and home assets without an HTTP server.
 resources = {f'../{path.relative_to(repo).as_posix()}': data_url(path)
              for folder in ('assets/home', 'assets/pets', 'assets/audio')
              for path in (repo / folder).iterdir() if path.suffix in ('.png', '.mp3')}
+resources.update({f'../{path}': data_url(repo / path) for path in (
+    'assets/sprites/messi/run_front.png', 'assets/messi-run-front-mask.png',
+    'assets/memory-photos-1.webp', 'assets/memory-photos-2.webp',
+)})
 import json
 source = 'const OFFLINE_ASSETS=' + json.dumps(resources) + ';\n' + source
 source = source.replace('new URL(path,import.meta.url).href', 'OFFLINE_ASSETS[path]')

@@ -82,50 +82,22 @@ export class MemoryMatch {
   }
 }
 
-export function memoryMotifs(sprites, metadata, stickers, ranks) {
-  const pose = (name, key, frame, color) => {
-    const sheet = 'ronaldo/' + key;
-    return {name, src: sprites[sheet], frames: metadata[sheet].frames, frame, color};
-  };
-  const image = (index, color) => ({name: ranks[index + 1], src: stickers[index], color});
-  const symbol = (name, icon, color) => ({name, icon, color});
-  return [
-    pose('Elfmeter', 'shoot_side', 5, '#a3cc8a'),
-    pose('Siuuu!', 'celebrate_front', 6, '#f5c772'),
-    pose('Kopfball', 'header_up', 4, '#a3d7ed'),
-    pose('Antritt', 'run_front', 3, '#e9b092'),
-    pose('Sprung', 'jump_front', 3, '#c6a5e4'),
-    pose('Dribbling links', 'run_left_side', 2, '#f6bda3'),
-    pose('Startaufstellung', 'idle_front', 0, '#d9989d'),
-    image(0, '#bddee0'),
-    symbol('Dortmund', 'BVB', '#ffdb19'),
-    symbol('Pokal', '🏆', '#a889ca'),
-    symbol('Spielball', '⚽', '#83ccac'),
-    image(6, '#eed2a0'),
-    pose('Rückennummer', 'run_back', 2, '#9cb1db'),
-    pose('Dribbling rechts', 'run_right_side', 4, '#b5d6b0'),
-    pose('Ausweichen links', 'dodge_left', 3, '#edadc8'),
-    pose('Ausweichen rechts', 'dodge_right', 3, '#99ccd0'),
-    pose('Kopfball links', 'header_left', 4, '#a1b0e4'),
-    pose('Kopfball rechts', 'header_right', 4, '#eab395'),
-    image(1, '#afbdd9'),
-    image(2, '#dbbd8c'),
-    image(3, '#b6cda3'),
-    image(4, '#eeb1a6'),
-    image(5, '#bba2d2'),
-    image(7, '#9ac6d7'),
-    image(8, '#dfb9ce'),
-    image(9, '#dec884'),
-    symbol('Dortmunder Fankurve', '🟨⬛', '#ffe779'),
-    symbol('Meistermedaille', '🥇', '#c2d5a3'),
-    symbol('Goldener Schuh', '👟', '#e8c08a'),
-    symbol('Flutlicht', '🏟️', '#a6c9dd')
-  ];
-}
+const PHOTO_COLUMNS = 5;
+const PHOTO_ROWS = 3;
+const PHOTOS_PER_SHEET = PHOTO_COLUMNS * PHOTO_ROWS;
+const PHOTO_SHEETS = ['../assets/memory-photos-1.webp', '../assets/memory-photos-2.webp']
+  .map(path => new URL(path,import.meta.url).href);
+const MOTIF_NAMES = [
+  'Elfmeter', 'Siuuu!', 'Kopfball', 'Antritt', 'Fallrückzieher',
+  'Dribbling links', 'Vor dem Anpfiff', 'Pokalsieg', 'Dortmunder Stadion', 'Silberpokal',
+  'Spielball', 'Spielertunnel', 'Rückennummer 7', 'Dribbling rechts', 'Ballfinte',
+  'Zweikampf', 'Flugkopfball', 'Kopfball unter Flutlicht', 'Ronaldo als Nachwuchsstar', 'Torjubel',
+  'Jubel im Tunnel', 'Siegermedaille', 'In der Kabine', 'Freistoß im Regen', 'Portugal-Flagge',
+  'Applaus im Konfetti', 'Dortmunder Fankurve', 'Goldmedaille', 'Goldener Schuh', 'Stadion bei Nacht'
+];
 
 export class MemoryTable {
-  constructor(motifs) {
-    this.motifs = motifs;
+  constructor() {
     this.settings = {size: 0, opponent: 'computer', level: 'normal'};
   }
 
@@ -137,6 +109,10 @@ export class MemoryTable {
   open(panel) {
     this.stop();
     this.panel = panel;
+    for (const src of PHOTO_SHEETS) {
+      const photo = new Image();
+      photo.src = src;
+    }
     this.setup();
   }
 
@@ -234,31 +210,28 @@ export class MemoryTable {
     this.buttons.forEach((button, index) => {
       const matched = match.matched.has(index);
       const face = matched || match.open.includes(index);
-      const motif = this.motifs[match.cards[index]];
-      const label = `Karte ${index + 1}` + (face ? `, ${motif.name}${matched ? ', gefunden' : ''}` : ', verdeckt');
+      const motif = match.cards[index];
+      const name = MOTIF_NAMES[motif];
+      const label = `Karte ${index + 1}` + (face ? `, ${name}${matched ? ', gefunden' : ''}` : ', verdeckt');
       button.setAttribute('aria-label', label);
       button.setAttribute('aria-disabled', String(match.computerTurn || match.open.length === 2 || !match.available(index)));
       button.classList.toggle('matched', matched);
       if (face === (button.dataset.face === 'up')) return;
       button.dataset.face = face ? 'up' : 'down';
       if (!face) { button.replaceChildren(); return; }
-      button.style.setProperty('--motif-color', motif.color);
-      const art = document.createElement(motif.src && !motif.frames ? 'img' : 'span');
+      const tile = motif % PHOTOS_PER_SHEET;
+      const art = document.createElement('img');
       art.className = 'memory-motif';
-      art.setAttribute('aria-hidden', 'true');
-      if (motif.frames) {
-        art.style.backgroundImage = `url("${motif.src}")`;
-        art.style.backgroundSize = `${motif.frames * 100}% 100%`;
-        art.style.backgroundPosition = `${100 * motif.frame / (motif.frames - 1)}% 50%`;
-      } else if (motif.src) {
-        art.alt = '';
-        art.src = motif.src;
-      } else {
-        art.textContent = motif.icon;
-      }
+      art.alt = '';
+      art.draggable = false;
+      art.src = PHOTO_SHEETS[Math.floor(motif / PHOTOS_PER_SHEET)];
+      art.style.width = `${PHOTO_COLUMNS * 100}%`;
+      art.style.height = `${PHOTO_ROWS * 100}%`;
+      art.style.left = `${-(tile % PHOTO_COLUMNS) * 100}%`;
+      art.style.top = `${-Math.floor(tile / PHOTO_COLUMNS) * 100}%`;
       const caption = document.createElement('span');
       caption.className = 'memory-caption';
-      caption.textContent = motif.name;
+      caption.textContent = name;
       button.replaceChildren(art, caption);
     });
     this.panel.querySelector('[data-memory-again]').hidden = !match.done;
